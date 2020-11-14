@@ -23,6 +23,11 @@ struct AllOfParser<C: Collection>: Parser where C.Element: Parser {
         return (results, string)
     }
 }
+extension Parsers {
+    static func allOf<C: Collection>(_ collection: C) -> AllOfParser<C> where C.Element: Parser {
+        AllOfParser(parsers: collection)
+    }
+}
 
 struct BothParser<P1: Parser, P2: Parser>: Parser {
     let p1: P1
@@ -40,19 +45,47 @@ struct BothParser<P1: Parser, P2: Parser>: Parser {
     }
 }
 
+struct BothIgnoreFirstParser<P1: Parser, P2: Parser>: Parser {
+    let p1: P1
+    let p2: P2
+    
+    func parse<S: StringProtocol>(from string: S) throws -> (P2.Result, remainder: S.SubSequence) {
+        let r2: P2.Result
+        
+        var substring: S.SubSequence
+        (_, substring) = try string %> p1
+        (r2, substring) = try substring %> p2
+        
+        return (r2, substring)
+    }
+}
+
+struct BothIgnoreSecondParser<P1: Parser, P2: Parser>: Parser {
+    let p1: P1
+    let p2: P2
+    
+    func parse<S: StringProtocol>(from string: S) throws -> (P1.Result, remainder: S.SubSequence) {
+        let r1: P1.Result
+        
+        var substring: S.SubSequence
+        (r1, substring) = try string %> p1
+        (_, substring) = try substring %> p2
+        
+        return (r1, substring)
+    }
+}
+
 precedencegroup ParserAndPrecedence {
     higherThan: ParsePrecedence
     associativity: left
 }
 infix operator %& : ParserAndPrecedence
 
-func %& <P1: Parser, P2: Parser>(lhs: P1, rhs: P2) -> MapParser<BothParser<P1,P2>,P2.Result> where P1.Result == () {
-    let both: BothParser = lhs %& rhs
-    return both.map({ $0.1 })
+func %& <P1: Parser, P2: Parser>(lhs: P1, rhs: P2) -> BothIgnoreFirstParser<P1,P2> where P1.Result == () {
+    return BothIgnoreFirstParser(p1: lhs, p2: rhs)
 }
-func %& <P1: Parser, P2: Parser>(lhs: P1, rhs: P2) -> MapParser<BothParser<P1,P2>,P1.Result> where P2.Result == () {
-    let both: BothParser = lhs %& rhs
-    return both.map({ $0.0 })
+func %& <P1: Parser, P2: Parser>(lhs: P1, rhs: P2) -> BothIgnoreSecondParser<P1,P2> where P2.Result == () {
+    return BothIgnoreSecondParser(p1: lhs, p2: rhs)
 }
 func %& <P1: Parser, P2: Parser>(lhs: P1, rhs: P2) -> BothParser<P1, P2> {
     BothParser(p1: lhs, p2: rhs)

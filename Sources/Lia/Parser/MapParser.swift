@@ -22,6 +22,20 @@ extension Parser {
     }
 }
 
+struct IgnoreParser<P: Parser>: Parser {
+    let parser: P
+    
+    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+        let (_, string) = try string %> parser
+        return ((), string)
+    }
+}
+extension Parser {
+    func ignore() -> IgnoreParser<Self> {
+        return IgnoreParser(parser: self)
+    }
+}
+
 struct MapErrorParser<P: Parser>: Parser {
     let parser: P
     let transform: (Error) -> Error

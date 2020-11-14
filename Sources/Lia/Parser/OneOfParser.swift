@@ -23,14 +23,26 @@ struct OneOfParser<C: Collection>: Parser where C.Element: Parser {
         throw ParserError.noMatch(errors)
     }
 }
-
-func oneOf<C: Collection>(_ parsers: C) -> OneOfParser<C> where C.Element: Parser {
-    return OneOfParser(parsers: parsers)
+extension Parsers {
+    static func oneOf<C: Collection>(_ parsers: C) -> OneOfParser<C> where C.Element: Parser {
+        return OneOfParser(parsers: parsers)
+    }
 }
+
 
 enum Either<First, Second> {
     case first(First)
     case second(Second)
+}
+extension Either: Parser where First: Parser, Second: Parser, First.Result == Second.Result {
+    func parse<S: StringProtocol>(from string: S) throws -> (First.Result, remainder: S.SubSequence) {
+        switch self {
+        case .first(let parser):
+            return try string %> parser
+        case .second(let parser):
+            return try string %> parser
+        }
+    }
 }
 
 struct EitherParser<P1: Parser, P2: Parser>: Parser {

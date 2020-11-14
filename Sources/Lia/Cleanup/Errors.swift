@@ -19,4 +19,5 @@ enum ParserError: Error {
     case repeatedHeaderField
     case headerEndRequiresNewLine
     case never
+    case empty
 }
