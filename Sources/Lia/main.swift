@@ -1,12 +1,45 @@
+import Foundation
+import PathKit
+
+let include = """
+import Foundation
+"""
+
 let file = """
-Hello abcdefg {% hello this is
-    some code %}
-blah {{ a value }}
-no this is not a comment {# but this is #}
+Hello! It it currently {{ Date() }}.
 """
 
 let (template, remainder) = try Template.parse(from: file)
 guard remainder.isEmpty else {
     fatalError()
 }
-print(template)
+
+let compiled = template.compile()
+
+let main = """
+print(render_\(Identifier(from: template.header[.name] ?? "unknown_template_name"))())
+"""
+
+let source = include + "\n" + compiled + "\n" + main
+
+let tmp = Path.temporary
+try tmp.chdir {
+    try Path("main.swift").write(source)
+    
+    let swiftc = Process()
+    swiftc.launchPath = "/usr/bin/swiftc"
+    swiftc.arguments = ["main.swift"]
+    swiftc.launch()
+    swiftc.waitUntilExit()
+    
+    let renderer = Process()
+    let pipe = Pipe()
+    renderer.launchPath = "./main"
+    renderer.standardOutput = pipe
+    renderer.launch()
+    renderer.waitUntilExit()
+    
+    let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
+    
+    print(output)
+}
