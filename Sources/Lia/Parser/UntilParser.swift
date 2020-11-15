@@ -10,7 +10,7 @@ import Foundation
 struct UntilSubstringParser: Parser {
     var substring: String
         
-    func parse<S: StringProtocol>(from string: S) throws -> (String, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (String, remainder: Substring) {
         guard let range = string.range(of: substring) else {
             throw ParserError.patternNotFound
         }
@@ -27,7 +27,7 @@ extension Parsers {
 struct UntilPredicateParser: Parser {
     var predicate: (Character) throws -> Bool
         
-    func parse<S: StringProtocol>(from string: S) throws -> (String, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (String, remainder: Substring) {
         
         guard let index = try string.firstIndex(where: predicate) else {
             throw ParserError.patternNotFound
@@ -44,7 +44,7 @@ extension Parsers {
 struct UntilParsedParser<P: Parser>: Parser {
     let parser: P
     
-    func parse<S: StringProtocol>(from string: S) throws -> ((String, P.Result), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((String, P.Result), remainder: Substring) {
         var index = string.startIndex
         while index < string.endIndex {
             do {
@@ -66,7 +66,7 @@ extension Parsers {
 struct UntilEmptyParser<P: Parser>: Parser {
     let parser: P
     
-    func parse<S: StringProtocol>(from string: S) throws -> ([P.Result], remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ([P.Result], remainder: Substring) {
         var string = string[...]
         var results: [P.Result] = []
         while !string.isEmpty {
@@ -83,11 +83,11 @@ extension Parser {
     }
 }
 
-struct ParseUntilParsedParser<Parser: Lia.Parser, Until: Lia.Parser>: Lia.Parser {
+struct ParseUntilParsedParser<Parser: ParserProtocol, Until: ParserProtocol>: ParserProtocol {
     let p: Parser
     let until: Until
     
-    func parse<S: StringProtocol>(from string: S) throws -> (([Parser.Result], Until.Result), remainder: S.SubSequence)  {
+    func parse(from string: Substring) throws -> (([Parser.Result], Until.Result), remainder: Substring)  {
         var r1: [Parser.Result] = []
         var string = string[...]
         repeat {

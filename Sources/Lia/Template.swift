@@ -38,7 +38,7 @@ struct Template: Parsable {
                     %& Parsers.emptyLine.mapError({ _ in ParserError.headerEndRequiresNewLine }).ignore()
             })
     
-    static func bodyParser(for header: Header) -> MapParser<UntilEmptyParser<MapParser<EitherParser<MapParser<UntilParsedParser<FlatMapParser<BothIgnoreFirstParser<StringParser, MapParser<EitherParser<EitherParser<MapParser<StringParser, Syntax>, MapParser<StringParser, Syntax>>, MapParser<StringParser, Syntax>>, Syntax>>, MapParser<UntilSubstringParser, BodyElement>>>, Array<BodyElement>>, MapParser<String.Parser, Array<BodyElement>>>, Array<BodyElement>>>, Array<BodyElement>> {
+    static func bodyParser(for header: Header) -> AnyParser<[BodyElement]> {
         let key = header[.key] ?? ""
         let beginKey = key + "{"
         let closeKey = "}" + key.reversed()
@@ -85,7 +85,7 @@ struct Template: Parsable {
         
         let parseBody = parseBodySection.untilEmpty().map({ Array($0.joined()) })
         
-        return parseBody
+        return parseBody.eraseToAnyParser()
     }
         
     enum BodyElement {

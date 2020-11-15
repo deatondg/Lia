@@ -8,7 +8,7 @@
 import Foundation
 
 struct AlwaysParser: Parser {
-    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((), remainder: Substring) {
         return ((), string[...])
     }
 }
@@ -17,7 +17,7 @@ extension Parsers {
 }
 
 struct EmptyParser: Parser {
-    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((), remainder: Substring) {
         guard string.isEmpty else {
             throw ParserError.patternNotFound
         }
@@ -31,7 +31,7 @@ extension Parsers {
 struct ConstantParser<T>: Parser {
     let value: T
         
-    func parse<S: StringProtocol>(from string: S) throws -> (T, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (T, remainder: Substring) {
         return (value, string[...])
     }
 }
@@ -42,7 +42,7 @@ extension Parsers {
 }
 
 struct NeverParser<T>: Parser {
-    func parse<S: StringProtocol>(from string: S) throws -> (T, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (T, remainder: Substring) {
         throw ParserError.never
     }
 }

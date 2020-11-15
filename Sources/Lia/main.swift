@@ -1,5 +1,13 @@
-import Foundation
-import PathKit
+//
+//  main.swift
+//  Lia
+//
+//  Created by Davis Deaton on 11/15/20.
+//
+
+Lia.main(["generate", "--help"])
+
+exit(0)
 
 let include = """
 import Foundation

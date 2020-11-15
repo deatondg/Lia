@@ -8,7 +8,7 @@
 import Foundation
 
 struct EnumParser<E>: Parser where E: CaseIterable, E: RawRepresentable, E.RawValue == String {
-    func parse<S: StringProtocol>(from string: S) throws -> (E, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (E, remainder: Substring) {
         try string %> Parsers.oneOf(E.allCases.map({ e in (%e.rawValue).map({ e }) }))
     }
 }

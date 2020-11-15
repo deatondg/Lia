@@ -11,7 +11,7 @@ struct MapParser<P: Parser, Result>: Parser {
     let parser: P
     let transform: (P.Result) throws -> Result
     
-    func parse<S: StringProtocol>(from string: S) throws -> (Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (Result, remainder: Substring) {
         let (value, remainder) = try string %> parser
         return (try transform(value), remainder)
     }
@@ -25,7 +25,7 @@ extension Parser {
 struct IgnoreParser<P: Parser>: Parser {
     let parser: P
     
-    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((), remainder: Substring) {
         let (_, string) = try string %> parser
         return ((), string)
     }
@@ -40,7 +40,7 @@ struct MapErrorParser<P: Parser>: Parser {
     let parser: P
     let transform: (Error) -> Error
     
-    func parse<S: StringProtocol>(from string: S) throws -> (P.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P.Result, remainder: Substring) {
         do {
             return try string %> parser
         } catch {

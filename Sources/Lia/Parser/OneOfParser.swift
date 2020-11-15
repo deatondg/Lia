@@ -10,7 +10,7 @@ import Foundation
 struct OneOfParser<C: Collection>: Parser where C.Element: Parser {
     let parsers: C
     
-    func parse<S: StringProtocol>(from string: S) throws -> (C.Element.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (C.Element.Result, remainder: Substring) {
         var errors: [Error] = []
         errors.reserveCapacity(parsers.count)
         for p in parsers {
@@ -35,7 +35,7 @@ enum Either<First, Second> {
     case second(Second)
 }
 extension Either: Parser where First: Parser, Second: Parser, First.Result == Second.Result {
-    func parse<S: StringProtocol>(from string: S) throws -> (First.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (First.Result, remainder: Substring) {
         switch self {
         case .first(let parser):
             return try string %> parser
@@ -49,7 +49,7 @@ struct EitherParser<P1: Parser, P2: Parser>: Parser {
     let p1: P1
     let p2: P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (Either<P1.Result, P2.Result>, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (Either<P1.Result, P2.Result>, remainder: Substring) {
         do {
             let (r1, string) = try string %> p1
             return (.first(r1), string)

@@ -10,11 +10,11 @@ import Foundation
 struct AllOfParser<C: Collection>: Parser where C.Element: Parser {
     let parsers: C
     
-    func parse<S: StringProtocol>(from string: S) throws -> ([C.Element.Result], remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ([C.Element.Result], remainder: Substring) {
         var results = [C.Element.Result]()
         results.reserveCapacity(parsers.count)
         
-        var string: S.SubSequence = string[...]
+        var string = string
         for p in parsers {
             let result: C.Element.Result
             (result, string) = try string %> p
@@ -33,15 +33,15 @@ struct BothParser<P1: Parser, P2: Parser>: Parser {
     let p1: P1
     let p2: P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> ((P1.Result, P2.Result), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((P1.Result, P2.Result), remainder: Substring) {
         let r1: P1.Result
         let r2: P2.Result
         
-        var substring: S.SubSequence
-        (r1, substring) = try string %> p1
-        (r2, substring) = try substring %> p2
+        var string = string
+        (r1, string) = try string %> p1
+        (r2, string) = try string %> p2
         
-        return ((r1,r2), substring)
+        return ((r1,r2), string)
     }
 }
 
@@ -49,14 +49,14 @@ struct BothIgnoreFirstParser<P1: Parser, P2: Parser>: Parser {
     let p1: P1
     let p2: P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (P2.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P2.Result, remainder: Substring) {
         let r2: P2.Result
         
-        var substring: S.SubSequence
-        (_, substring) = try string %> p1
-        (r2, substring) = try substring %> p2
+        var string = string
+        (_, string) = try string %> p1
+        (r2, string) = try string %> p2
         
-        return (r2, substring)
+        return (r2, string)
     }
 }
 
@@ -64,14 +64,14 @@ struct BothIgnoreSecondParser<P1: Parser, P2: Parser>: Parser {
     let p1: P1
     let p2: P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (P1.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P1.Result, remainder: Substring) {
         let r1: P1.Result
         
-        var substring: S.SubSequence
-        (r1, substring) = try string %> p1
-        (_, substring) = try substring %> p2
+        var string = string
+        (r1, string) = try string %> p1
+        (_, string) = try string %> p2
         
-        return (r1, substring)
+        return (r1, string)
     }
 }
 

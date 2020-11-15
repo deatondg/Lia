@@ -12,7 +12,7 @@ prefix operator %
 struct CharacterParser: Parser {
     let character: Character
         
-    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((), remainder: Substring) {
         let (head, tail) = (string.first, string.dropFirst())
         if head == character {
             return ((), tail)
@@ -33,7 +33,7 @@ prefix func %(c: Character) -> CharacterParser {
 struct StringParser: Parser {
     let prefix: String
         
-    func parse<S: StringProtocol>(from string: S) throws -> ((), remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> ((), remainder: Substring) {
         var prefixIndex = prefix.startIndex
         var stringIndex = string.startIndex
         while prefixIndex < prefix.endIndex && stringIndex < string.endIndex && prefix[prefixIndex] == string[stringIndex] {
@@ -59,7 +59,7 @@ prefix func %(s: String) -> StringParser {
 struct PredicateParser: Parser {
     let predicate: (Character) -> Bool
     
-    func parse<S: StringProtocol>(from string: S) throws -> (String, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (String, remainder: Substring) {
         let index = string.firstIndex(where: predicate) ?? string.endIndex
         return (String(string[..<index]), string[index...])
     }

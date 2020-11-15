@@ -8,18 +8,22 @@
 import Foundation
 
 protocol Parsable {
-    associatedtype Parser: Lia.Parser where Parser.Result == Self
+    associatedtype Parser: ParserProtocol where Parser.Result == Self
     static var parser: Parser { get }
 }
 extension Parsable {
-    static func parse<S: StringProtocol>(from string: S) throws -> (Self, remainder: S.SubSequence) {
-        try parser.parse(from: string)
+    static func parse(from string: Substring) throws -> (Self, remainder: Substring) {
+        try string %> Self.parser
+    }
+    static func parse(from string: String) throws -> (Self, remainder: Substring) {
+        try string %> Self.parser
     }
 }
+typealias ParserProtocol = Parser
 
 extension Character: Parsable {
-    struct Parser: Lia.Parser {
-        func parse<S: StringProtocol>(from string: S) throws -> (Character, remainder: S.SubSequence) {
+    struct Parser: ParserProtocol {
+        func parse(from string: Substring) throws -> (Character, remainder: Substring) {
             let (maybeHead, tail) = (string.first, string.dropFirst())
             guard let head = maybeHead else {
                 throw ParserError.empty
@@ -31,8 +35,8 @@ extension Character: Parsable {
 }
 
 extension String: Parsable {
-    struct Parser: Lia.Parser {
-        func parse<S: StringProtocol>(from string: S) throws -> (String, remainder: S.SubSequence) {
+    struct Parser: ParserProtocol {
+        func parse(from string: Substring) throws -> (String, remainder: Substring) {
             return (String(string), string[string.endIndex...])
         }
     }

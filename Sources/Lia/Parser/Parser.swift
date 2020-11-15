@@ -10,13 +10,17 @@ import Foundation
 protocol Parser {
     associatedtype Result
     
-    func parse<S: StringProtocol>(from string: S) throws -> (Result, remainder: S.SubSequence)
+    func parse(from string: Substring) throws -> (Result, remainder: Substring)
 }
 
 precedencegroup ParsePrecedence {
     higherThan: AssignmentPrecedence
 }
 infix operator %>: ParsePrecedence
-func %> <S: StringProtocol, P: Parser>(lhs: S, rhs: P) throws -> (P.Result, S.SubSequence) {
+func %> <P: Parser>(lhs: String, rhs: P) throws -> (P.Result, Substring) {
+    try rhs.parse(from: lhs[...])
+}
+func %> <P: Parser>(lhs: Substring, rhs: P) throws -> (P.Result, Substring) {
     try rhs.parse(from: lhs)
 }
+

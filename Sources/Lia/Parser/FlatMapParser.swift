@@ -11,7 +11,7 @@ struct FlatMapParser<P1: Parser, P2: Parser>: Parser {
     let parser: P1
     let transform: (P1.Result) throws -> P2
 
-    func parse<S: StringProtocol>(from string: S) throws -> (P2.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P2.Result, remainder: Substring) {
         let (r1, string) = try string %> parser
         let p2 = try transform(r1)
         return try string %> p2
@@ -27,7 +27,7 @@ struct FlatMapFirstParser<P1: Parser, First, Second, P2: Parser>: Parser where P
     let parser: P1
     let transform: (First) throws -> P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (Either<P2.Result, Second>, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (Either<P2.Result, Second>, remainder: Substring) {
         let (r1, string) = try string %> parser
         switch r1 {
         case .first(let r1):
@@ -48,7 +48,7 @@ struct FlatMapSecondParser<P1: Parser, First, Second, P2: Parser>: Parser where 
     let parser: P1
     let transform: (Second) throws -> P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (Either<First, P2.Result>, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (Either<First, P2.Result>, remainder: Substring) {
         let (r1, string) = try string %> parser
         switch r1 {
         case .first(let r1):
@@ -69,7 +69,7 @@ struct FlatMapFirstReduceParser<P1: Parser, First, P2: Parser>: Parser where P1.
     let parser: P1
     let transform: (First) throws -> P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (P2.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P2.Result, remainder: Substring) {
         let (r1, string) = try string %> parser
         switch r1 {
         case .first(let r1):
@@ -89,7 +89,7 @@ struct FlatMapSecondReduceParser<P1: Parser, Second, P2: Parser>: Parser where P
     let parser: P1
     let transform: (Second) throws -> P2
     
-    func parse<S: StringProtocol>(from string: S) throws -> (P2.Result, remainder: S.SubSequence) {
+    func parse(from string: Substring) throws -> (P2.Result, remainder: Substring) {
         let (r1, string) = try string %> parser
         switch r1 {
         case .first(let r1):
