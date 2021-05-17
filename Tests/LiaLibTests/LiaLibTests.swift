@@ -1,7 +1,7 @@
 import XCTest
-@testable import LiaDescription
+@testable import LiaLib
 
-final class LiaDescriptionTests: XCTestCase {
+final class LiaLibTests: XCTestCase {
     func testExample() {
         XCTAssert(true != false)
     }

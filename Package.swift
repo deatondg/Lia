@@ -1,37 +1,51 @@
 // swift-tools-version:5.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "Lia",
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .library(
+        .executable(
             name: "Lia",
             targets: ["Lia"]),
         .library(
+            name: "LiaLib",
+            targets: ["LiaLib"]),
+        .library(
             name: "LiaDescription",
             targets: ["LiaDescription"]),
+        .library(
+            name: "TemplateDescription",
+            targets: ["TemplateDescription"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
+        .package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "Lia",
+            dependencies: ["LiaLib"]),
+        .target(
+            name: "LiaLib",
             dependencies: []),
         .target(
             name: "LiaDescription",
+            dependencies: [.product(name: "PackageDescription", package: "SwiftPM")]),
+        .target(
+            name: "TemplateDescription",
             dependencies: []),
         .testTarget(
             name: "LiaTests",
             dependencies: ["Lia"]),
         .testTarget(
+            name: "LiaLibTests",
+            dependencies: ["LiaLib"]),
+        .testTarget(
             name: "LiaDescriptionTests",
-            dependencies: ["Lia"]),
+            dependencies: ["LiaDescription"]),
+        .testTarget(
+            name: "TemplateDescriptionTests",
+            dependencies: ["TemplateDescription"])
     ]
 )
