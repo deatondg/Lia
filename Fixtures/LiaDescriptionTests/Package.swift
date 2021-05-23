@@ -16,7 +16,7 @@ let package = Package(
             name: "LiaDescriptionTest",
             dependencies: []),
         .testTarget(
-            name: "LiaDescriptionTestTests",
-            dependencies: ["LiaDescriptionTest"]),
+            name: "LiaDescriptionTests",
+            dependencies: ["LiaDescription"]),
     ]
 )

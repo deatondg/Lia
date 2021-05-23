@@ -3,23 +3,35 @@ import PackageDescription
 
 let package = Package(
     name: "Lia",
+    platforms: [
+        .macOS(.v11)
+    ],
     products: [
+        /// The front-end invoked by `lia`
         .executable(
-            name: "Lia",
+            name: "lia",
             targets: ["Lia"]),
+        /// The majority of functionaliy for `lia` is here. This way, it can be tested individually.
+        /// Some tests also import LiaLib to use some of its functionality.
         .library(
             name: "LiaLib",
             targets: ["LiaLib"]),
+        /// The description of a `Lia.swift` file.
         .library(
             name: "LiaDescription",
             targets: ["LiaDescription"]),
+        /// The description of a `.lia` file.
         .library(
             name: "TemplateDescription",
-            targets: ["TemplateDescription"])
+            targets: ["TemplateDescription"]),
+        /// Code shared by `LiaDescription` and `TemplateDescription`.
+        .library(
+            name: "LiaSupport",
+            targets: ["LiaSupport"]),
+        
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+        .package(name: "tee", url: "https://github.com/deatondg/tee.swift", .branch("main")),
         .package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
@@ -28,16 +40,20 @@ let package = Package(
             dependencies: ["LiaLib"]),
         .target(
             name: "LiaLib",
-            dependencies: []),
+            dependencies: ["LiaDescription", "TemplateDescription", "LiaSupport", "tee"]),
         .target(
             name: "LiaDescription",
-            dependencies: [.product(name: "PackageDescription", package: "SwiftPM")]),
+            dependencies: ["LiaSupport", .product(name: "PackageDescription", package: "SwiftPM")]),
         .target(
             name: "TemplateDescription",
+            dependencies: ["LiaSupport"]),
+        .target(
+            name: "LiaSupport",
             dependencies: []),
+        
         .testTarget(
             name: "LiaTests",
-            dependencies: ["Lia"]),
+            dependencies: ["Lia", "LiaLib"]),
         .testTarget(
             name: "LiaLibTests",
             dependencies: ["LiaLib"]),
@@ -46,6 +62,9 @@ let package = Package(
             dependencies: ["LiaDescription"]),
         .testTarget(
             name: "TemplateDescriptionTests",
-            dependencies: ["TemplateDescription"])
+            dependencies: ["LiaLib", "TemplateDescription"]),
+        .testTarget(
+            name: "LiaSupportTests",
+            dependencies: ["LiaSupport"]),
     ]
 )

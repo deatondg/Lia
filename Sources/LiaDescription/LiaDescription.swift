@@ -1,13 +1,14 @@
+import LiaSupport
 import Foundation
 import PackageDescription
 
 public struct LiaDescription {
-    let actions: [LiaAction]
-    let dependencies: [Package.Dependency]
-    let bundles: [TemplateBundle]
+    public let actions: [LiaAction]
+    public let dependencies: [Package.Dependency]
+    public let bundles: [TemplateBundle]
 }
 
-enum LiaAction {
+public enum LiaAction {
     case render(
             bundles: [TemplateBundle],
             destination: String)
@@ -15,7 +16,7 @@ enum LiaAction {
             product: LiaProduct)
 }
 
-enum LiaProduct {
+public enum LiaProduct {
     case sources(
             moduleName: String,
             bundles: [TemplateBundle],
@@ -30,7 +31,7 @@ enum LiaProduct {
             dylibDestination: String)
 }
 
-enum DylibController {
+public enum DylibController {
     case sources(
             moduleName: String,
             destination: String)
@@ -39,8 +40,14 @@ enum DylibController {
             destination: String)
 }
 
-struct TemplateBundle {
-    let name: String
-    let path: String
-    let dependencies: [Target.Dependency]
+public struct TemplateBundle {
+    public let name: String
+    public let path: Path?
+    public let dependencies: [Target.Dependency]
+    
+    public init(name: String, path: Path? = nil, dependencies: [Target.Dependency] = []) {
+        self.name = name
+        self.path = path
+        self.dependencies = dependencies
+    }
 }
