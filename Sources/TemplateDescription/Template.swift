@@ -14,7 +14,7 @@ public struct Template: Equatable, Codable {
     private static var dumpInfo: (template: Template, path: String)?
     private func registerExitHandler() {
         guard CommandLine.arguments.count == 3 else { return }
-        guard CommandLine.arguments[1] == "--liaTemplateFileno" else { return }
+        guard CommandLine.arguments[1] == "--liaTemplateOutput" else { return }
         let path: String = CommandLine.arguments[2]
         
         if Template.dumpInfo == nil {

@@ -112,7 +112,7 @@ final class TemplateDescriptionTests: XCTestCase {
         if noargs {
             arguments = []
         } else {
-            arguments = ["--liaTemplateFileno", jsonFile.path]
+            arguments = ["--liaTemplateOutput", jsonFile.path]
         }
         
         let output = try binary.runSync(withArguments: arguments).extractOutput()

@@ -6,7 +6,7 @@ public enum TemplateBundleError: Error {
     case invalidName
 }
 public struct TemplateBundle {
-    let description: LiaDescription.TemplateBundle
+    let description: LocatedTemplateBundleDescription
     
     var name: String { description.name }
     let path: Path
@@ -16,7 +16,7 @@ public struct TemplateBundle {
     let headers: [Path]
     let unknowns: [Path]
     
-    public init(from description: LiaDescription.TemplateBundle) throws {
+    public init(from description: LocatedTemplateBundleDescription) throws {
         self.description = description
         
         let name = description.name

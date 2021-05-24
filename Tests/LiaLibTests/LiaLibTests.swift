@@ -10,7 +10,7 @@ final class LiaLibTests: XCTestCase {
     
     func testTemplateBundle() throws {
         let testTemplateBundlePath = packageDirectory + "Fixtures/TestTemplateBundle"
-        let testTemplateBundleDescription = LiaDescription.TemplateBundle(name: "TestTemplateBundle", path: testTemplateBundlePath)
+        let testTemplateBundleDescription = TemplateBundle(name: "TestTemplateBundle", path: testTemplateBundlePath)
         let testTemplateBundle = try TemplateBundle(from: testTemplateBundleDescription)
         print(testTemplateBundle)
         //fatalError()
