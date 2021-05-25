@@ -12,13 +12,12 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let templateShouldBe = Template(
             parameters: .init("parameters", line: 4, column: 18),
-            genericConstraints: .init("genericConstraints", line: 5, column: 26),
-            key: .init("key", line: 6, column: 11),
-            identifier: .init("identifier", line: 7, column: 18),
+            key: .init("key", line: 5, column: 11),
+            identifier: .init("identifier", line: 6, column: 18),
             syntax: .init(
-                value: .init(open: .init("value.open", line: 9, column: 29), close: .init("value.close", line: 9, column: 52)),
-                code: .init(open: .init("code.open", line: 10, column: 28), close: .init("code.close", line: 10, column: 50)),
-                comment: .init(open: .init("comment.open", line: 11, column: 31), close: .init("comment.close", line: 11, column: 56))
+                value: .init(open: .init("value.open", line: 8, column: 29), close: .init("value.close", line: 8, column: 52)),
+                code: .init(open: .init("code.open", line: 9, column: 28), close: .init("code.close", line: 9, column: 50)),
+                comment: .init(open: .init("comment.open", line: 10, column: 31), close: .init("comment.close", line: 10, column: 56))
             )
         )
 
@@ -31,8 +30,7 @@ final class TemplateDescriptionTests: XCTestCase {
         let template = try renderTemplate(binary: binary)
         
         let templateShouldBe = Template(
-            parameters: nil,
-            genericConstraints: .init("genericConstraints", line: 4, column: 26),
+            parameters: .init("parameters", line: 4, column: 18),
             key: .init("key", line: 5, column: 11),
             identifier: nil,
             syntax: .init(
@@ -52,7 +50,6 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let templateShouldBe = Template(
             parameters: nil,
-            genericConstraints: nil,
             key: nil,
             identifier: nil,
             syntax: .init(
@@ -76,13 +73,12 @@ final class TemplateDescriptionTests: XCTestCase {
             
             let templateShouldBe = Template(
                 parameters: .init("parameters", line: 4, column: 18),
-                genericConstraints: .init("genericConstraints", line: 5, column: 26),
-                key: .init("key", line: 6, column: 11),
-                identifier: .init("identifier", line: 7, column: 18),
+                key: .init("key", line: 5, column: 11),
+                identifier: .init("identifier", line: 6, column: 18),
                 syntax: .init(
-                    value: .init(open: .init("value.open", line: 9, column: 29), close: .init("value.close", line: 9, column: 52)),
-                    code: .init(open: .init("code.open", line: 10, column: 28), close: .init("code.close", line: 10, column: 50)),
-                    comment: .init(open: .init("comment.open", line: 11, column: 31), close: .init("comment.close", line: 11, column: 56))
+                    value: .init(open: .init("value.open", line: 8, column: 29), close: .init("value.close", line: 8, column: 52)),
+                    code: .init(open: .init("code.open", line: 9, column: 28), close: .init("code.close", line: 9, column: 50)),
+                    comment: .init(open: .init("comment.open", line: 10, column: 31), close: .init("comment.close", line: 10, column: 56))
                 )
             )
 

@@ -1,7 +1,7 @@
 import TemplateDescription
 
 let template = Template(
-    genericConstraints: {"genericConstraints"},
+    parameters: {"parameters"},
     key: {"key"},
     syntax: .init(
         comment: .init(open: {"comment.open"}, close: {"comment.close"})

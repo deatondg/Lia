@@ -3,7 +3,6 @@ import Foundation
 
 public struct Template: Equatable, Codable {
     public let parameters: Located<String>?
-    public let genericConstraints: Located<String>?
     public let key: Located<String>?
     public let identifier: Located<String>?
     public let syntax: Syntax
@@ -29,13 +28,11 @@ public struct Template: Equatable, Codable {
     
     public init(
         parameters: Located<String>?,
-        genericConstraints: Located<String>?,
         key: Located<String>?,
         identifier: Located<String>?,
-        syntax: Syntax = Syntax()
+        syntax: Syntax
     ) {
         self.parameters = parameters
-        self.genericConstraints = genericConstraints
         self.key = key
         self.identifier = identifier
         self.syntax = syntax
@@ -43,76 +40,18 @@ public struct Template: Equatable, Codable {
     }
     
     /// It is not possible to provide default values for result builders in the way that I want.
-    /// Instead, we provide manual overloads for each argument set. There are 2^4=16 of these.
+    /// Instead, we provide manual overloads for each argument set. There are 2^3=8 of these.
     /// This is unfortunate.
     public init(
         @LocatedBuilder parameters: () -> Located<String>,
-        @LocatedBuilder genericConstraints: () -> Located<String>,
         @LocatedBuilder key: () -> Located<String>,
         @LocatedBuilder identifier: () -> Located<String>,
         syntax: Syntax = Syntax()
     ) {
         self.init(
             parameters: parameters(),
-            genericConstraints: genericConstraints(),
             key: key(),
             identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        @LocatedBuilder key: () -> Located<String>,
-        @LocatedBuilder identifier: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: nil,
-            genericConstraints: genericConstraints(),
-            key: key(),
-            identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder parameters: () -> Located<String>,
-        @LocatedBuilder key: () -> Located<String>,
-        @LocatedBuilder identifier: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: parameters(),
-            genericConstraints: nil,
-            key: key(),
-            identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder parameters: () -> Located<String>,
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        @LocatedBuilder identifier: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: parameters(),
-            genericConstraints: genericConstraints(),
-            key: nil,
-            identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder parameters: () -> Located<String>,
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        @LocatedBuilder key: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: parameters(),
-            genericConstraints: genericConstraints(),
-            key: key(),
-            identifier: nil,
             syntax: syntax
         )
     }
@@ -123,35 +62,8 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: nil,
-            genericConstraints: nil,
             key: key(),
             identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        @LocatedBuilder identifier: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: nil,
-            genericConstraints: genericConstraints(),
-            key: nil,
-            identifier: identifier(),
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        @LocatedBuilder key: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: nil,
-            genericConstraints: genericConstraints(),
-            key: key(),
-            identifier: nil,
             syntax: syntax
         )
     }
@@ -162,7 +74,6 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: parameters(),
-            genericConstraints: nil,
             key: nil,
             identifier: identifier(),
             syntax: syntax
@@ -175,21 +86,7 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: parameters(),
-            genericConstraints: nil,
             key: key(),
-            identifier: nil,
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder parameters: () -> Located<String>,
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: parameters(),
-            genericConstraints: genericConstraints(),
-            key: nil,
             identifier: nil,
             syntax: syntax
         )
@@ -200,7 +97,6 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: nil,
-            genericConstraints: nil,
             key: nil,
             identifier: identifier(),
             syntax: syntax
@@ -212,20 +108,7 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: nil,
-            genericConstraints: nil,
             key: key(),
-            identifier: nil,
-            syntax: syntax
-        )
-    }
-    public init(
-        @LocatedBuilder genericConstraints: () -> Located<String>,
-        syntax: Syntax = Syntax()
-    ) {
-        self.init(
-            parameters: nil,
-            genericConstraints: genericConstraints(),
-            key: nil,
             identifier: nil,
             syntax: syntax
         )
@@ -236,7 +119,6 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: parameters(),
-            genericConstraints: nil,
             key: nil,
             identifier: nil,
             syntax: syntax
@@ -247,7 +129,6 @@ public struct Template: Equatable, Codable {
     ) {
         self.init(
             parameters: nil,
-            genericConstraints: nil,
             key: nil,
             identifier: nil,
             syntax: syntax

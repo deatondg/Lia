@@ -2,7 +2,6 @@ import TemplateDescription
 
 let template = Template(
     parameters: {"parameters"},
-    genericConstraints: {"genericConstraints"},
     key: {"key"},
     identifier: {"identifier"},
     syntax: .init(

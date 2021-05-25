@@ -1,6 +1,5 @@
 import XCTest
 @testable import LiaLib
-import LiaDescription
 
 final class LiaLibTests: XCTestCase {
     func testSwiftVersion() throws {
@@ -9,11 +8,7 @@ final class LiaLibTests: XCTestCase {
     }
     
     func testTemplateBundle() throws {
-        let testTemplateBundlePath = packageDirectory + "Fixtures/TestTemplateBundle"
-        let testTemplateBundleDescription = TemplateBundle(name: "TestTemplateBundle", path: testTemplateBundlePath)
-        let testTemplateBundle = try TemplateBundle(from: testTemplateBundleDescription)
-        print(testTemplateBundle)
-        //fatalError()
+        let _ = try TemplateBundle.init(fromDescription: .init(name: .init("test"), path: nil, dependencies: nil, includeSources: nil, allowInlineHeaders: nil, templateExtension: nil, headerExtension: nil, unknownFileMethod: nil, ignoreDotFiles: nil, invalidIdentifierCharacterMethod: nil, defaultParameters: nil, defaultSyntax: .init()))
     }
     
     /// Returns path package directory.

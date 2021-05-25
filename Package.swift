@@ -16,6 +16,11 @@ let package = Package(
         .library(
             name: "LiaLib",
             targets: ["LiaLib"]),
+        /// Renames some Description types so that LiaLib can reuse them.
+        /// It is very frustrating to me that I must do this.
+        .library(
+            name: "LiaShims",
+            targets: ["LiaShims"]),
         /// The description of a `Lia.swift` file.
         .library(
             name: "LiaDescription",
@@ -32,6 +37,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "tee", url: "https://github.com/deatondg/tee.swift", .branch("main")),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "0.2.0"),
         .package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
@@ -40,7 +46,13 @@ let package = Package(
             dependencies: ["LiaLib"]),
         .target(
             name: "LiaLib",
-            dependencies: ["LiaDescription", "TemplateDescription", "LiaSupport", "tee"]),
+            dependencies: ["LiaShims", "LiaDescription", "TemplateDescription", "LiaSupport",
+                           "tee",
+                           .product(name: "Algorithms", package: "swift-algorithms")
+            ]),
+        .target(
+            name: "LiaShims",
+            dependencies: ["LiaDescription", "TemplateDescription", "LiaSupport"]),
         .target(
             name: "LiaDescription",
             dependencies: ["LiaSupport", .product(name: "PackageDescription", package: "SwiftPM")]),

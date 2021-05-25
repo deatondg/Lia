@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Path {
+public struct Path: Equatable, Codable {
     public private(set) var url: URL
     public var path: String { url.path }
     
