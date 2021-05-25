@@ -4,6 +4,10 @@ public enum LiaProduct: Equatable {
     case sources
     case package(name: Located<String>)
     //case dylibs(DylibController)
+    
+    public static func package(@LocatedBuilder name: () -> Located<String>) -> LiaProduct {
+        .package(name: name())
+    }
 }
 /*
 public struct DylibController: Equatable, Codable {
@@ -29,24 +33,24 @@ extension LiaProduct: Codable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if try container.decodeNil(forKey: .sources) {
-            guard !container.contains(.package) else {
-                throw DecodingError.multipleKeysSpecified
+        guard container.allKeys.count == 1 else {
+            if container.allKeys.count > 1 {
+                throw DecodingError.multipleKeys
+            } else {
+                throw DecodingError.noKeys
             }
+        }
+        if try container.decodeNil(forKey: .sources) {
             self = .sources
             return
         } else if let name = try container.decodeIfPresent(Located<String>.self, forKey: .package) {
-            guard !container.contains(.sources) else {
-                throw DecodingError.multipleKeysSpecified
-            }
             self = .package(name: name)
             return
-        } else {
-            throw DecodingError.noKeys
         }
+        fatalError() // Impossible, there is a key.
     }
     enum DecodingError: Error {
-        case multipleKeysSpecified
+        case multipleKeys
         case noKeys
     }
     
@@ -55,8 +59,10 @@ extension LiaProduct: Codable {
         switch self {
         case .sources:
             try container.encodeNil(forKey: .sources)
+            return
         case .package(name: let name):
             try container.encode(name, forKey: .package)
+            return
         }
     }
 }

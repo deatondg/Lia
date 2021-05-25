@@ -8,6 +8,7 @@ enum TemplateBundleError: Error {
     case pathMustBeSpecifiedWhenNameIsInvalidPathComponent(LocatedTemplateBundleDescription)
     case templateExtensionCannotBeSwiftWhenSourcesAreIncluded(LocatedTemplateBundleDescription)
     case headerExtensionCannotBeSwiftWhenSourcesAreIncluded(LocatedTemplateBundleDescription)
+    case headerExtensionCannotBeSpecifiedWithNoTemplateExtension(LocatedTemplateBundleDescription)
     case templateExtensionAndHeaderExtensionMustDiffer(LocatedTemplateBundleDescription)
     case extraWhitespaceInDefaultParameters(LocatedTemplateBundleDescription)
     case defaultSyntaxError(Error, LocatedTemplateBundleDescription)
@@ -20,11 +21,11 @@ struct TemplateBundle {
     //let dependencies: [Target.Dependency]
     let includeSources: Bool
     let allowInlineHeaders: Bool
-    let templateExtension: String
+    let templateExtension: String?
     let headerExtension: String?
     let unknownFileMethod: UnknownFileMethod
     let ignoreDotFiles: Bool
-    let identifierConversionMethod: IdentifierConversionMethod
+    let identifierConversionMethod: Identifier.ConversionMethod
     let defaultParameters: String
     let defaultSyntax: Syntax
     
@@ -37,7 +38,7 @@ struct TemplateBundle {
          headerExtension: String?,
          unknownFileMethod: UnknownFileMethod,
          ignoreDotFiles: Bool,
-         identifierConversionMethod: IdentifierConversionMethod,
+         identifierConversionMethod: Identifier.ConversionMethod,
          defaultParameters: String,
          defaultSyntax: Syntax
     ) {
@@ -79,7 +80,12 @@ struct TemplateBundle {
         let includeSources = description.includeSources?.value ?? true
         self.includeSources = includeSources
         
-        let templateExtension = description.templateExtension?.value ?? "lia"
+        let templateExtension: String?
+        if let locatedTemplateExtension = description.templateExtension {
+            templateExtension = locatedTemplateExtension.value
+        } else {
+            templateExtension = "lia"
+        }
         let headerExtension: String?
         if let locatedHeaderExtension = description.headerExtension {
             headerExtension = locatedHeaderExtension.value
@@ -95,8 +101,14 @@ struct TemplateBundle {
                 throw TemplateBundleError.headerExtensionCannotBeSwiftWhenSourcesAreIncluded(description)
             }
         }
-        guard templateExtension != headerExtension else {
-            throw TemplateBundleError.templateExtensionAndHeaderExtensionMustDiffer(description)
+        if templateExtension == nil {
+            guard headerExtension == nil else {
+                throw TemplateBundleError.headerExtensionCannotBeSpecifiedWithNoTemplateExtension(description)
+            }
+        } else {
+            guard templateExtension != headerExtension else {
+                throw TemplateBundleError.templateExtensionAndHeaderExtensionMustDiffer(description)
+            }
         }
         
         self.templateExtension = templateExtension

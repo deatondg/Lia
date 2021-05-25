@@ -43,7 +43,8 @@ struct Identifier {
     ]
     
     let string: String
-    init(from other: String, conversionMethod: IdentifierConversionMethod) throws {
+    
+    init(from other: String, conversionMethod: ConversionMethod) throws {
         
         let replacement: UnicodeScalar?
         

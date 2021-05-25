@@ -7,23 +7,23 @@ public struct LiaAction: Equatable, Codable {
 }
 extension LiaAction {
     public static func render(
-        bundles: [Located<String>],
-        toPath destination: Located<String>
+        @LocatedBuilder bundles: () -> [Located<String>],
+        @LocatedBuilder toPath destination: () -> Located<String>
     ) -> LiaAction {
         self.init(
-            bundles: bundles,
-            destination: destination,
+            bundles: bundles(),
+            destination: destination(),
             type: .render
         )
     }
     public static func build(
-        bundles: [Located<String>],
-        toPath destination: Located<String>,
+        @LocatedBuilder bundles: () -> [Located<String>],
+        @LocatedBuilder toPath destination: () -> Located<String>,
         as product: LiaProduct
     ) -> LiaAction {
         self.init(
-            bundles: bundles,
-            destination: destination,
+            bundles: bundles(),
+            destination: destination(),
             type: .build(product))
     }
 }
@@ -40,24 +40,24 @@ extension LiaActionType: Codable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if try container.decodeNil(forKey: .render) {
-            guard !container.contains(.build) else {
-                throw DecodingError.multipleKeysSpecified
+        guard container.allKeys.count == 1 else {
+            if container.allKeys.count > 1 {
+                throw DecodingError.multipleKeys
+            } else {
+                throw DecodingError.noKeys
             }
+        }
+        if try container.decodeNil(forKey: .render) {
             self = .render
             return
         } else if let product = try container.decodeIfPresent(LiaProduct.self, forKey: .build) {
-            guard !container.contains(.render) else {
-                throw DecodingError.multipleKeysSpecified
-            }
             self = .build(product)
             return
-        } else {
-            throw DecodingError.noKeys
         }
+        fatalError() // Impossible, there is a key.
     }
     enum DecodingError: Error {
-        case multipleKeysSpecified
+        case multipleKeys
         case noKeys
     }
     
@@ -66,8 +66,10 @@ extension LiaActionType: Codable {
         switch self {
         case .render:
             try container.encodeNil(forKey: .render)
+            return
         case .build(let product):
             try container.encode(product, forKey: .build)
+            return
         }
     }
 }

@@ -15,7 +15,7 @@ struct IdentifierPath {
         self.components = components
     }
     
-    init(from path: Path, conversionMethod: IdentifierConversionMethod) throws {
+    init(from path: Path, conversionMethod: Identifier.ConversionMethod) throws {
         self.components = try path.components.map({ try Identifier(from: $0, conversionMethod: conversionMethod) })
     }
     init(_ string: String) throws {

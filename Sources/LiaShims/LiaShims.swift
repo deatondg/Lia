@@ -8,5 +8,5 @@ public typealias LocatedSyntaxDescription = LiaSupport.Syntax
 public typealias LocatedTemplateDescription = TemplateDescription.Template
 public typealias LocatedTemplateBundleDescription = LiaDescription.TemplateBundle
 
-public typealias IdentifierConversionMethod = LiaDescription.IdentifierConversionMethod
-public typealias UnknownFileMethod = LiaDescription.UnknownFileMethod
+public typealias LocatedIdentifierConversionMethod = LiaDescription.IdentifierConversionMethod
+public typealias LocatedUnknownFileMethod = LiaDescription.UnknownFileMethod
