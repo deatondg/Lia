@@ -1,0 +1,1 @@
+struct UnitType: Equatable, Codable {}

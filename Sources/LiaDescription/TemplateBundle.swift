@@ -16,34 +16,6 @@ public struct TemplateBundle: Equatable, Codable {
     public let defaultParameters: Located<String>?
     public let defaultSyntax: Syntax
     
-    public init(
-        name: Located<String>,
-        path: Located<String>?,
-        //dependencies: Located<[Target.Dependency]>?,
-        includeSources: Located<Bool>?,
-        allowInlineHeaders: Located<Bool>?,
-        templateExtension: LiaOptional<String>?,
-        headerExtension: LiaOptional<String>?,
-        unknownFileMethod: UnknownFileMethod?,
-        ignoreDotFiles: Located<Bool>?,
-        identifierConversionMethod: IdentifierConversionMethod?,
-        defaultParameters: Located<String>?,
-        defaultSyntax: Syntax
-    ) {
-        self.name = name
-        self.path = path
-        //self.dependencies = dependencies
-        self.includeSources = includeSources
-        self.allowInlineHeaders = allowInlineHeaders
-        self.templateExtension = templateExtension
-        self.headerExtension = headerExtension
-        self.unknownFileMethod = unknownFileMethod
-        self.ignoreDotFiles = ignoreDotFiles
-        self.identifierConversionMethod = identifierConversionMethod
-        self.defaultParameters = defaultParameters
-        self.defaultSyntax = defaultSyntax
-    }
-    
     /// We need 2^(# of LiaOptional arguments) factory methods because each LiaOptional argument can either be given as a LocatedBuilder or as a regular value.
     public static func bundle(
         @LocatedBuilder name: () -> Located<String>,

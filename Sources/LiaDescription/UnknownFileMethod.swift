@@ -44,6 +44,16 @@ extension UnknownFileMethod: Codable {
     }
     
     public func encode(to encoder: Encoder) throws {
-        fatalError()
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .ignore(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .ignore)
+        case let .warn(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .warn)
+        case let .error(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .error)
+        case let .useAsTemplate(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .useAsTemplate)
+        }
     }
 }

@@ -1,7 +1,7 @@
 import XCTest
 import class Foundation.Bundle
+@testable import TemplateDescription
 import LiaLib
-import TemplateDescription
 
 final class TemplateDescriptionTests: XCTestCase {
     
@@ -89,7 +89,13 @@ final class TemplateDescriptionTests: XCTestCase {
     func testRenderNoargs() {
         let binary = productsDirectory.appending(pathComponent: "FullTemplate")
         
-        XCTAssertThrowsError(try renderTemplate(binary: binary, noargs: true))
+        do {
+            let _ = try renderTemplate(binary: binary, noargs: true)
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(error.code, 260)
+            XCTAssertEqual((error.userInfo["NSUnderlyingError"] as? NSError)?.code, 2)
+        }
     }
     
     func renderTemplate(binary: Path, noargs: Bool = false, file: Path? = nil) throws -> Template {
@@ -113,20 +119,8 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let output = try binary.runSync(withArguments: arguments).extractOutput()
         XCTAssertEqual(output, "")
-        
-        let jsonData: Data
-        do {
-            jsonData = try Data(contentsOf: jsonFile)
-        } catch {
-            if noargs {
-                let error = error as NSError
-                XCTAssertEqual(error.code, 260)
-                XCTAssertEqual((error.userInfo["NSUnderlyingError"] as? NSError)?.code, 2)
-            }
-            throw error
-        }
-                
-        return try JSONDecoder().decode(Template.self, from: jsonData)
+
+        return try JSONDecoder().decode(Template.self, from: try Data(contentsOf: jsonFile))
     }
 
     /// Returns path to the built products directory.

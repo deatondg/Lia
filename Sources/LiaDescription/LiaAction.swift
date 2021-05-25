@@ -47,7 +47,7 @@ extension LiaActionType: Codable {
                 throw DecodingError.noKeys
             }
         }
-        if try container.decodeNil(forKey: .render) {
+        if let _ = try container.decodeIfPresent(UnitType.self, forKey: .render) {
             self = .render
             return
         } else if let product = try container.decodeIfPresent(LiaProduct.self, forKey: .build) {
@@ -65,7 +65,7 @@ extension LiaActionType: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
         case .render:
-            try container.encodeNil(forKey: .render)
+            try container.encode(UnitType(), forKey: .render)
             return
         case .build(let product):
             try container.encode(product, forKey: .build)
@@ -73,3 +73,4 @@ extension LiaActionType: Codable {
         }
     }
 }
+

@@ -1,6 +1,6 @@
 import LiaDescription
 
-let description: LiaDescription = LiaDescription(
+let description = LiaDescription(
     actions: [
         .render(
             bundles: {
@@ -68,9 +68,9 @@ let description: LiaDescription = LiaDescription(
             identifierConversionMethod: .fail(),
             defaultParameters: {"shared_default_parameters"},
             defaultSyntax: .init(
-                value: .init(open: {"render_value_open"}, close: {"render_value_close"}),
-                code: .init(open: {"render_code_open"}, close: {"render_code_close"}),
-                comment: .init(open: {"render_comment_open"}, close: {"render_comment_close"})
+                value: .init(open: {"shared_value_open"}, close: {"shared_value_close"}),
+                code: .init(open: {"shared_code_open"}, close: {"shared_code_close"}),
+                comment: .init(open: {"shared_comment_open"}, close: {"shared_comment_close"})
             )
         )
     ]

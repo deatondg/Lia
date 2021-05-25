@@ -39,6 +39,14 @@ extension IdentifierConversionMethod: Codable {
     }
     
     public func encode(to encoder: Encoder) throws {
-        fatalError()
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .replaceOrPrefixWithUnderscores(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .replaceOrPrefixWithUnderscores)
+        case let .deleteOrPrexfixWithUnderscores(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .deleteOrPrexfixWithUnderscores)
+        case let .fail(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .fail)
+        }
     }
 }

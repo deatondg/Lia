@@ -40,7 +40,7 @@ extension LiaProduct: Codable {
                 throw DecodingError.noKeys
             }
         }
-        if try container.decodeNil(forKey: .sources) {
+        if let _ = try container.decodeIfPresent(UnitType.self, forKey: .sources) {
             self = .sources
             return
         } else if let name = try container.decodeIfPresent(Located<String>.self, forKey: .package) {
@@ -58,7 +58,7 @@ extension LiaProduct: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
         case .sources:
-            try container.encodeNil(forKey: .sources)
+            try container.encode(UnitType(), forKey: .sources)
             return
         case .package(name: let name):
             try container.encode(name, forKey: .package)

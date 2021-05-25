@@ -11,9 +11,6 @@ let package = Package(
             name: "FullDescription",
             targets: ["FullDescription"]),
         .executable(
-            name: "PartialDescription",
-            targets: ["PartialDescription"]),
-        .executable(
             name: "EmptyDescription",
             targets: ["EmptyDescription"])
     ],
@@ -25,14 +22,11 @@ let package = Package(
             name: "FullDescription",
             dependencies: [.product(name: "LiaDescription", package: "Lia")]),
         .target(
-            name: "PartialDescription",
-            dependencies: [.product(name: "LiaDescription", package: "Lia")]),
-        .target(
             name: "EmptyDescription",
             dependencies: [.product(name: "LiaDescription", package: "Lia")]),
         .testTarget(
             name: "LiaDescriptionTests",
             dependencies: [.product(name: "LiaDescription", package: "Lia"), .product(name: "LiaLib", package: "Lia"),
-                           "FullDescription", "PartialDescription", "EmptyDescription"]),
+                           "FullDescription", "EmptyDescription"]),
     ]
 )

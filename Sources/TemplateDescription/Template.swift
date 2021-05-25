@@ -26,7 +26,7 @@ public struct Template: Equatable, Codable {
         Template.dumpInfo = (self, path)
     }
     
-    public init(
+    init(
         parameters: Located<String>?,
         key: Located<String>?,
         identifier: Located<String>?,
