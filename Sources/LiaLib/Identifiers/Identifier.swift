@@ -43,11 +43,11 @@ struct Identifier {
     ]
     
     let string: String
-    init(from other: String, handleInvalidCharactersWith invalidCharacterMethod: InvalidIdentifierCharacterMethod) throws {
+    init(from other: String, conversionMethod: IdentifierConversionMethod) throws {
         
         let replacement: UnicodeScalar?
         
-        switch invalidCharacterMethod {
+        switch conversionMethod {
         case .fail:
             guard let first = other.unicodeScalars.first, Identifier.headSet.contains(first),
                   other.unicodeScalars.allSatisfy(Identifier.tailSet.contains) else {

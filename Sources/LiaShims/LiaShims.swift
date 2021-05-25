@@ -1,12 +1,12 @@
 import struct LiaSupport.Syntax
 import struct TemplateDescription.Template
 import struct LiaDescription.TemplateBundle
-import enum LiaDescription.InvalidIdentifierCharacterMethod
+import enum LiaDescription.IdentifierConversionMethod
 import enum LiaDescription.UnknownFileMethod
 
 public typealias LocatedSyntaxDescription = LiaSupport.Syntax
 public typealias LocatedTemplateDescription = TemplateDescription.Template
 public typealias LocatedTemplateBundleDescription = LiaDescription.TemplateBundle
 
-public typealias InvalidIdentifierCharacterMethod = LiaDescription.InvalidIdentifierCharacterMethod
+public typealias IdentifierConversionMethod = LiaDescription.IdentifierConversionMethod
 public typealias UnknownFileMethod = LiaDescription.UnknownFileMethod

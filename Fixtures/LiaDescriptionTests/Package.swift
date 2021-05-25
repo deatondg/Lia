@@ -1,22 +1,38 @@
 // swift-tools-version:5.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "LiaDescriptionTest",
+    platforms: [
+        .macOS(.v11)
+    ],
+    products: [
+        .executable(
+            name: "FullDescription",
+            targets: ["FullDescription"]),
+        .executable(
+            name: "PartialDescription",
+            targets: ["PartialDescription"]),
+        .executable(
+            name: "EmptyDescription",
+            targets: ["EmptyDescription"])
+    ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+        .package(name: "Lia", path: "../..")
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
-            name: "LiaDescriptionTest",
-            dependencies: []),
+            name: "FullDescription",
+            dependencies: [.product(name: "LiaDescription", package: "Lia")]),
+        .target(
+            name: "PartialDescription",
+            dependencies: [.product(name: "LiaDescription", package: "Lia")]),
+        .target(
+            name: "EmptyDescription",
+            dependencies: [.product(name: "LiaDescription", package: "Lia")]),
         .testTarget(
             name: "LiaDescriptionTests",
-            dependencies: ["LiaDescription"]),
+            dependencies: [.product(name: "LiaDescription", package: "Lia"), .product(name: "LiaLib", package: "Lia"),
+                           "FullDescription", "PartialDescription", "EmptyDescription"]),
     ]
 )

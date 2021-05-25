@@ -15,6 +15,9 @@ public enum LocatedBuilder {
     public static func buildBlock<T>(_ value: T, line: Int = #line, column: Int = #column) -> Located<T> {
         .init(value, line: line, column: column)
     }
+    public static func buildBlock<T>(_ value: T, line: Int = #line, column: Int = #column) -> Located<T>? {
+        .init(value, line: line, column: column)
+    }
 }
 
 extension Located: Equatable where T: Equatable {}

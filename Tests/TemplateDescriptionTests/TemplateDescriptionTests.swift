@@ -5,9 +5,16 @@ import LiaLib
 final class TemplateDescriptionTests: XCTestCase {
     func testFromFixtures() throws {
         let fixture = packageDirectory + "Fixtures/TemplateDescriptionTests"
-        let result = try Path("/bin/sh").runSync(inDirectory: fixture, withArguments: "-c", "swift test", tee: true)
-        guard let stderr = result.error, result.terminationReason == .exit, result.terminationStatus == 0, result.output != nil else { XCTFail(); return }
-        XCTAssert(stderr.split(separator: "\n").dropLast().last!.starts(with: "Test Suite \'All tests\' passed"))
+        let result = try Path.executable(named: "swift").runSync(inDirectory: fixture, withArguments: "test", tee: true)
+        if let stderr = result.error,
+              result.terminationReason == .exit,
+              result.terminationStatus == 0,
+              result.output != nil,
+              stderr.split(separator: "\n").dropLast().last!.starts(with: "Test Suite \'All tests\' passed")
+        { }
+        else {
+            XCTFail()
+        }
     }
     
     /// Returns path package directory.

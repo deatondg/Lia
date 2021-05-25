@@ -15,13 +15,13 @@ struct IdentifierPath {
         self.components = components
     }
     
-    init(from path: Path, handleInvalidCharactersWith invalidCharacterMethod: InvalidIdentifierCharacterMethod) throws {
-        self.components = try path.components.map({ try Identifier(from: $0, handleInvalidCharactersWith: invalidCharacterMethod) })
+    init(from path: Path, conversionMethod: IdentifierConversionMethod) throws {
+        self.components = try path.components.map({ try Identifier(from: $0, conversionMethod: conversionMethod) })
     }
     init(_ string: String) throws {
         self.components = try string.split(separator: ".", omittingEmptySubsequences: false)
             .map(String.init)
-            .map({ try Identifier(from: $0, handleInvalidCharactersWith: .fail) })
+            .map({ try Identifier(from: $0, conversionMethod: .fail) })
     }
 }
 

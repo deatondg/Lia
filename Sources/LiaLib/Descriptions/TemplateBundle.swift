@@ -1,6 +1,6 @@
 import LiaSupport
 import LiaDescription
-import PackageDescription
+//import PackageDescription
 import Foundation
 
 enum TemplateBundleError: Error {
@@ -24,7 +24,7 @@ struct TemplateBundle {
     let headerExtension: String?
     let unknownFileMethod: UnknownFileMethod
     let ignoreDotFiles: Bool
-    let invalidIdentifierCharacterMethod: InvalidIdentifierCharacterMethod
+    let identifierConversionMethod: IdentifierConversionMethod
     let defaultParameters: String
     let defaultSyntax: Syntax
     
@@ -37,7 +37,7 @@ struct TemplateBundle {
          headerExtension: String?,
          unknownFileMethod: UnknownFileMethod,
          ignoreDotFiles: Bool,
-         invalidIdentifierCharacterMethod: InvalidIdentifierCharacterMethod,
+         identifierConversionMethod: IdentifierConversionMethod,
          defaultParameters: String,
          defaultSyntax: Syntax
     ) {
@@ -51,7 +51,7 @@ struct TemplateBundle {
         self.headerExtension = headerExtension
         self.unknownFileMethod = unknownFileMethod
         self.ignoreDotFiles = ignoreDotFiles
-        self.invalidIdentifierCharacterMethod = invalidIdentifierCharacterMethod
+        self.identifierConversionMethod = identifierConversionMethod
         self.defaultParameters = defaultParameters
         self.defaultSyntax = defaultSyntax
     }
@@ -105,7 +105,7 @@ struct TemplateBundle {
         self.unknownFileMethod = description.unknownFileMethod?.value ?? .error
         self.ignoreDotFiles = description.ignoreDotFiles?.value ?? true
         
-        self.invalidIdentifierCharacterMethod = description.invalidIdentifierCharacterMethod?.value ?? .replaceOrPrefixWithUnderscores
+        self.identifierConversionMethod = description.identifierConversionMethod?.value ?? .replaceOrPrefixWithUnderscores
         
         self.defaultParameters = ""
         guard defaultParameters.trimmingCharacters(in: .whitespacesAndNewlines) == defaultParameters else {

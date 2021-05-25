@@ -1,47 +1,134 @@
 import XCTest
 import class Foundation.Bundle
+import LiaDescription
+import LiaLib
 
 final class LiaDescriptionTestTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
+    /*
+    func testFullEncodeDecode() throws {
+        let binary = productsDirectory.appending(pathComponent: "FullTemplate")
 
-        // Some of the APIs that we use below are available in macOS 10.13 and above.
-        guard #available(macOS 10.13, *) else {
-            return
-        }
+        let template = try renderTemplate(binary: binary)
+        
+        let templateShouldBe = Template(
+            parameters: .init("parameters", line: 4, column: 18),
+            key: .init("key", line: 5, column: 11),
+            identifier: .init("identifier", line: 6, column: 18),
+            syntax: .init(
+                value: .init(open: .init("value.open", line: 8, column: 29), close: .init("value.close", line: 8, column: 52)),
+                code: .init(open: .init("code.open", line: 9, column: 28), close: .init("code.close", line: 9, column: 50)),
+                comment: .init(open: .init("comment.open", line: 10, column: 31), close: .init("comment.close", line: 10, column: 56))
+            )
+        )
 
-        // Mac Catalyst won't have `Process`, but it is supported for executables.
-        #if !targetEnvironment(macCatalyst)
-
-        let fooBinary = productsDirectory.appendingPathComponent("LiaDescriptionTest")
-
-        let process = Process()
-        process.executableURL = fooBinary
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-
-        XCTAssertEqual(output, "Hello, world!\n")
-        #endif
+        XCTAssertEqual(template, templateShouldBe)
     }
+    
+    func testPartialEncodeDecode() throws {
+        let binary = productsDirectory.appending(pathComponent: "PartialTemplate")
 
+        let template = try renderTemplate(binary: binary)
+        
+        let templateShouldBe = Template(
+            parameters: .init("parameters", line: 4, column: 18),
+            key: .init("key", line: 5, column: 11),
+            identifier: nil,
+            syntax: .init(
+                value: nil,
+                code: nil,
+                comment: .init(open: .init("comment.open", line: 7, column: 31), close: .init("comment.close", line: 7, column: 56))
+            )
+        )
+        
+        XCTAssertEqual(template, templateShouldBe)
+    }
+    */
+    
+    func testEmptyEncodeDecode() throws {
+        let binary = productsDirectory.appending(pathComponent: "EmptyDescription")
+
+        let description = try renderDescription(binary: binary)
+        
+        let descriptionShouldBe = LiaDescription(actions: [], bundles: [])
+        
+        XCTAssertEqual(description, descriptionShouldBe)
+    }
+    
+    /*
+    func testRelativeEncodeDecode() throws {
+        try Path.withCurrentWorkingDirectory(.temporaryDirectory) {
+            let binary = productsDirectory.appending(pathComponent: "FullTemplate")
+
+            let template = try renderTemplate(binary: binary, file: Path("TemplateDescriptionTests.json"))
+            
+            let templateShouldBe = Template(
+                parameters: .init("parameters", line: 4, column: 18),
+                key: .init("key", line: 5, column: 11),
+                identifier: .init("identifier", line: 6, column: 18),
+                syntax: .init(
+                    value: .init(open: .init("value.open", line: 8, column: 29), close: .init("value.close", line: 8, column: 52)),
+                    code: .init(open: .init("code.open", line: 9, column: 28), close: .init("code.close", line: 9, column: 50)),
+                    comment: .init(open: .init("comment.open", line: 10, column: 31), close: .init("comment.close", line: 10, column: 56))
+                )
+            )
+
+            XCTAssertEqual(template, templateShouldBe)
+        }
+    }
+ 
+    func testRenderNoargs() {
+        let binary = productsDirectory.appending(pathComponent: "FullTemplate")
+        
+        XCTAssertThrowsError(try renderTemplate(binary: binary, noargs: true))
+    }
+    */
+    
+    func renderDescription(binary: Path, noargs: Bool = false, file: Path? = nil) throws -> LiaDescription {
+
+        let jsonFile: Path
+        if let file = file {
+            jsonFile = file
+        } else {
+            jsonFile = Path.temporaryDirectory.appending(pathComponent: "LiaDescriptionTests.json")
+        }
+        if jsonFile.exists() {
+            try! jsonFile.deleteFromFilesystem()
+        }
+        
+        let arguments: [String]
+        if noargs {
+            arguments = []
+        } else {
+            arguments = ["--liaDescriptionOutput", jsonFile.path]
+        }
+        
+        let output = try binary.runSync(withArguments: arguments).extractOutput()
+        XCTAssertEqual(output, "")
+        
+        let jsonData: Data
+        do {
+            jsonData = try Data(contentsOf: jsonFile)
+        } catch {
+            if noargs {
+                let error = error as NSError
+                XCTAssertEqual(error.code, 260)
+                XCTAssertEqual((error.userInfo["NSUnderlyingError"] as? NSError)?.code, 2)
+            }
+            throw error
+        }
+                
+        return try JSONDecoder().decode(LiaDescription.self, from: jsonData)
+    }
+ 
     /// Returns path to the built products directory.
-    var productsDirectory: URL {
+    var productsDirectory: Path {
       #if os(macOS)
-        for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-            return bundle.bundleURL.deletingLastPathComponent()
+        for bundle in Bundle.allBundles where bundle.path.extension == "xctest" {
+            return bundle.path.deletingLastPathComponent()
         }
         fatalError("couldn't find the products directory")
       #else
-        return Bundle.main.bundleURL
+        return Bundle.main.path
       #endif
     }
 }

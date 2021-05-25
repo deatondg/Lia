@@ -47,7 +47,7 @@ struct TemplateDescription {
             }
         } else {
             do {
-                self.identifier = IdentifierPath(try path.components.map({ try Identifier(from: $0, handleInvalidCharactersWith: bundle.invalidIdentifierCharacterMethod) }))
+                self.identifier = IdentifierPath(try path.components.map({ try Identifier(from: $0, conversionMethod: bundle.identifierConversionMethod) }))
             } catch {
                 throw TemplateDescriptionError.pathIsInvalidIdentifier(error, description, path, bundle)
             }

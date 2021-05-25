@@ -6,6 +6,17 @@ let package = Package(
     platforms: [
         .macOS(.v11)
     ],
+    products: [
+        .executable(
+            name: "FullTemplate",
+            targets: ["FullTemplate"]),
+        .executable(
+            name: "PartialTemplate",
+            targets: ["PartialTemplate"]),
+        .executable(
+            name: "EmptyTemplate",
+            targets: ["EmptyTemplate"])
+    ],
     dependencies: [
         .package(name: "Lia", path: "../..")
     ],

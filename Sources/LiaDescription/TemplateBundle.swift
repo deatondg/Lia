@@ -1,5 +1,5 @@
 import LiaSupport
-import PackageDescription
+//import PackageDescription
 
 public struct TemplateBundle: Equatable, Codable {
     public let name: Located<String>
@@ -12,21 +12,21 @@ public struct TemplateBundle: Equatable, Codable {
     public let headerExtension: Located<Optional<String>>?
     public let unknownFileMethod: Located<UnknownFileMethod>?
     public let ignoreDotFiles: Located<Bool>?
-    public let invalidIdentifierCharacterMethod: Located<InvalidIdentifierCharacterMethod>?
+    public let identifierConversionMethod: Located<IdentifierConversionMethod>?
     public let defaultParameters: Located<String>?
     public let defaultSyntax: Syntax
     
     public init(
         name: Located<String>,
         path: Located<String>?,
-        dependencies: Located<[Target.Dependency]>?,
+        //dependencies: Located<[Target.Dependency]>?,
         includeSources: Located<Bool>?,
         allowInlineHeaders: Located<Bool>?,
         templateExtension: Located<String>?,
         headerExtension: Located<Optional<String>>?,
         unknownFileMethod: Located<UnknownFileMethod>?,
         ignoreDotFiles: Located<Bool>?,
-        invalidIdentifierCharacterMethod: Located<InvalidIdentifierCharacterMethod>?,
+        identifierConversionMethod: Located<IdentifierConversionMethod>?,
         defaultParameters: Located<String>?,
         defaultSyntax: Syntax
     ) {
@@ -39,21 +39,37 @@ public struct TemplateBundle: Equatable, Codable {
         self.headerExtension = headerExtension
         self.unknownFileMethod = unknownFileMethod
         self.ignoreDotFiles = ignoreDotFiles
-        self.invalidIdentifierCharacterMethod = invalidIdentifierCharacterMethod
+        self.identifierConversionMethod = identifierConversionMethod
         self.defaultParameters = defaultParameters
         self.defaultSyntax = defaultSyntax
     }
-}
-
-/// Possibly rename this
-public enum InvalidIdentifierCharacterMethod: String, Codable {
-    case replaceOrPrefixWithUnderscores
-    case deleteOrPrexfixWithUnderscores
-    case fail
-}
-public enum UnknownFileMethod: String, Codable {
-    case ignore
-    case warn
-    case error
-    case useAsTemplate
+    
+    public static func bundle(
+        @LocatedBuilder name: () -> Located<String>,
+        @LocatedBuilder path: () -> Located<String>? = { nil },
+        //@LocatedBuilder dependencies: () -> Located<[Target.Dependency]>?,
+        @LocatedBuilder includeSources: () -> Located<Bool>? = { nil },
+        @LocatedBuilder allowInlineHeaders: () -> Located<Bool>? = { nil },
+        @LocatedBuilder templateExtension: () -> Located<String>? = { nil },
+        @LocatedBuilder headerExtension: () -> Located<Optional<String>>? = { nil },
+        @LocatedBuilder unknownFileMethod: () -> Located<UnknownFileMethod>? = { nil },
+        @LocatedBuilder ignoreDotFiles: () -> Located<Bool>? = { nil },
+        @LocatedBuilder identifierConversionMethod: () -> Located<IdentifierConversionMethod>? = { nil },
+        @LocatedBuilder defaultParameters: () -> Located<String>? = { nil },
+        defaultSyntax: Syntax
+    ) -> TemplateBundle {
+        return .init(
+            name: name(),
+            path: path(),
+            //dependencies: dependencies(),
+            includeSources: includeSources(),
+            allowInlineHeaders: allowInlineHeaders(),
+            templateExtension: templateExtension(),
+            headerExtension: headerExtension(),
+            unknownFileMethod: unknownFileMethod(),
+            ignoreDotFiles: ignoreDotFiles(),
+            identifierConversionMethod: identifierConversionMethod(),
+            defaultParameters: defaultParameters(),
+            defaultSyntax: defaultSyntax)
+    }
 }

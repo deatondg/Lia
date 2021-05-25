@@ -1,42 +1,42 @@
 import LiaSupport
 import Foundation
-import PackageDescription
+//import PackageDescription
 
-public struct LiaDescription {
+public struct LiaDescription: Equatable, Codable {
     public let actions: [LiaAction]
-    public let dependencies: [Package.Dependency]
+    //public let dependencies: [Package.Dependency]
     public let bundles: [TemplateBundle]
+    
+    /// If the command line arguments are `--liaDescriptionOutput <path>`, print the template JSON to `path` at exit.
+    /// Only do this for the most recently created template.
+    /// Loosly based on `swift-package-manager/Sources/PackageDescription/PackageDescription.swift`.
+    private static var dumpInfo: (description: LiaDescription, path: String)?
+    private func registerExitHandler() {
+        guard CommandLine.arguments.count == 3 else { return }
+        guard CommandLine.arguments[1] == "--liaDescriptionOutput" else { return }
+        let path: String = CommandLine.arguments[2]
+        
+        if LiaDescription.dumpInfo == nil {
+            atexit {
+                guard let (description, path) = LiaDescription.dumpInfo else { return }
+                try! JSONEncoder().encode(description).write(to: URL(fileURLWithPath: path))
+            }
+        }
+        
+        LiaDescription.dumpInfo = (self, path)
+    }
+    
+    public init(
+        actions: [LiaAction],
+        //dependencies: [Package.Dependency],
+        bundles: [TemplateBundle]
+    ) {
+        self.actions = actions
+        //self.dependencies = dependencies
+        self.bundles = bundles
+        registerExitHandler()
+    }
 }
 
-public enum LiaAction {
-    case render(
-            bundles: [TemplateBundle],
-            destination: String)
-    case build(
-            product: LiaProduct)
-}
 
-public enum LiaProduct {
-    case sources(
-            moduleName: String,
-            bundles: [TemplateBundle],
-            destination: String)
-    case package(
-            moduleName: String,
-            bundles: [TemplateBundle],
-            destination: String)
-    case dylibs(
-            controller: DylibController,
-            bundles: [TemplateBundle],
-            dylibDestination: String)
-}
-
-public enum DylibController {
-    case sources(
-            moduleName: String,
-            destination: String)
-    case package(
-            moduleName: String,
-            destination: String)
-}
 

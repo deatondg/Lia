@@ -33,12 +33,11 @@ let package = Package(
         .library(
             name: "LiaSupport",
             targets: ["LiaSupport"]),
-        
     ],
     dependencies: [
         .package(name: "tee", url: "https://github.com/deatondg/tee.swift", .branch("main")),
         .package(url: "https://github.com/apple/swift-algorithms", from: "0.2.0"),
-        .package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
+        //.package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
         .target(
@@ -55,7 +54,9 @@ let package = Package(
             dependencies: ["LiaDescription", "TemplateDescription", "LiaSupport"]),
         .target(
             name: "LiaDescription",
-            dependencies: ["LiaSupport", .product(name: "PackageDescription", package: "SwiftPM")]),
+            dependencies: ["LiaSupport",
+                           //.product(name: "PackageDescription", package: "SwiftPM")
+            ]),
         .target(
             name: "TemplateDescription",
             dependencies: ["LiaSupport"]),
@@ -71,7 +72,7 @@ let package = Package(
             dependencies: ["LiaLib"]),
         .testTarget(
             name: "LiaDescriptionTests",
-            dependencies: ["LiaDescription"]),
+            dependencies: ["LiaLib", "LiaDescription"]),
         .testTarget(
             name: "TemplateDescriptionTests",
             dependencies: ["LiaLib", "TemplateDescription"]),
