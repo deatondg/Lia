@@ -19,7 +19,7 @@ let description = LiaDescription(
                 "shared_bundle"
             },
             toPath: {"sources_path"},
-            as: .sources)
+            as: .sources())
     ],
     bundles: [
         .bundle(

@@ -92,7 +92,7 @@ final class LiaDescriptionTestTests: XCTestCase {
                         .init("package_bundle", line: 18, column: 17),
                         .init("shared_bundle", line: 19, column: 17)
                     ],
-                    destination: .init("sources_path", line: 21, column: 22), type: .build(.sources)
+                    destination: .init("sources_path", line: 21, column: 22), type: .build(.sources(line: 22, column: 25))
                 )
             ],
             bundles: [

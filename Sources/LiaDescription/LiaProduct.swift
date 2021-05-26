@@ -1,7 +1,7 @@
 import LiaSupport
 
 public enum LiaProduct: Equatable {
-    case sources
+    case sources(line: Int = #line, column: Int = #column)
     case package(name: Located<String>)
     //case dylibs(DylibController)
     
@@ -40,8 +40,8 @@ extension LiaProduct: Codable {
                 throw DecodingError.noKeys
             }
         }
-        if let _ = try container.decodeIfPresent(UnitType.self, forKey: .sources) {
-            self = .sources
+        if let location = try container.decodeIfPresent(Location.self, forKey: .sources) {
+            self = .sources(line: location.line, column: location.column)
             return
         } else if let name = try container.decodeIfPresent(Located<String>.self, forKey: .package) {
             self = .package(name: name)
@@ -57,8 +57,8 @@ extension LiaProduct: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .sources:
-            try container.encode(UnitType(), forKey: .sources)
+        case let .sources(line: line, column: column):
+            try container.encode(Location(line: line, column: column), forKey: .sources)
             return
         case .package(name: let name):
             try container.encode(name, forKey: .package)
