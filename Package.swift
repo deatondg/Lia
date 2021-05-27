@@ -24,18 +24,21 @@ let package = Package(
         /// The description of a `Lia.swift` file.
         .library(
             name: "LiaDescription",
+            type: .dynamic,
             targets: ["LiaDescription"]),
         /// The description of a `.lia` file.
         .library(
             name: "TemplateDescription",
+            type: .dynamic,
             targets: ["TemplateDescription"]),
         /// Code shared by `LiaDescription` and `TemplateDescription`.
         .library(
             name: "LiaSupport",
+            type: .dynamic,
             targets: ["LiaSupport"]),
     ],
     dependencies: [
-        .package(name: "tee", url: "https://github.com/deatondg/tee.swift", .branch("main")),
+        .package(name: "tee", url: "https://github.com/deatondg/tee.swift", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-algorithms", from: "0.2.0"),
         //.package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],

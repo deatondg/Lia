@@ -10,7 +10,7 @@ final class TemplateDescriptionTests: XCTestCase {
               result.terminationReason == .exit,
               result.terminationStatus == 0,
               result.output != nil,
-              stderr.split(separator: "\n").dropLast().last!.starts(with: "Test Suite \'All tests\' passed")
+              stderr.split(separator: "\n").dropLast().last?.starts(with: "Test Suite \'All tests\' passed") == true
         { }
         else {
             XCTFail()

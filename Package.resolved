@@ -23,9 +23,9 @@
         "package": "tee",
         "repositoryURL": "https://github.com/deatondg/tee.swift",
         "state": {
-          "branch": "main",
-          "revision": "0872e26454350500bd28fefbc5d3b5d493bfc849",
-          "version": null
+          "branch": null,
+          "revision": "60287545ede7a9f8d84c75896b2e60176a271a7d",
+          "version": "2.0.0"
         }
       }
     ]
