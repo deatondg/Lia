@@ -104,7 +104,7 @@ final class LiaDescriptionTests: XCTestCase {
         try Path.withCurrentWorkingDirectory(.temporaryDirectory) {
             let descriptionFile = packageDirectory + "Fixtures/LiaDescriptions/FullDescription.swift"
 
-            let description = try renderDescription(file: descriptionFile, manifest: Path("LiaDescriptionTests.manifest"), jsonFile: Path("LiaDescriptionTests.json"))
+            let description = try renderDescription(file: descriptionFile, artifact: Path("LiaDescriptionTests.artifact"), manifest: Path("LiaDescriptionTests.json"))
 
             XCTAssertEqual(description, fullDescriptionShouldBe)
         }
@@ -122,18 +122,16 @@ final class LiaDescriptionTests: XCTestCase {
         }
     }
     
-    func renderDescription(file input: Path, noargs: Bool = false, manifest: Path? = nil, jsonFile: Path? = nil) throws -> LiaDescription {
-        let jsonFile: Path = jsonFile ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).json")
-        let manifest: Path = manifest ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).manifest")
+    func renderDescription(file input: Path, noargs: Bool = false, artifact: Path? = nil, manifest: Path? = nil) throws -> LiaDescription {
+        let artifact: Path = artifact ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).artifact")
+        let manifest: Path = manifest ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).json")
         
-        if jsonFile.exists() {
-            try! jsonFile.deleteFromFilesystem()
+        if artifact.exists() {
+            try! artifact.deleteFromFilesystem()
         }
         if manifest.exists() {
             try! manifest.deleteFromFilesystem()
         }
-        
-        let libDirectory = Path("/Users/davisdeaton/Developer/Projects/Lia/.build/debug")
         
         let swiftcArguments: [String] = [
             "-Xlinker", "-rpath",
@@ -142,18 +140,18 @@ final class LiaDescriptionTests: XCTestCase {
             "-I", libDirectory.path,
             "-lLiaDescription", "-lLiaSupport",
             input.path,
-            "-o", manifest.path
+            "-o", artifact.path
         ]
         
         let swiftcOutput = try Path.executable(named: "swiftc").runSync(withArguments: swiftcArguments, tee: true).extractOutput()
         XCTAssertEqual(swiftcOutput, "")
         
-        let manifestArguments = noargs ? [] : ["--liaDescriptionOutput", jsonFile.path]
+        let artifactArguments = noargs ? [] : ["--liaDescriptionOutput", manifest.path]
         
-        let manifestOutput = try manifest.runSync(withArguments: manifestArguments, tee: false).extractOutput()
-        XCTAssertEqual(manifestOutput, "")
+        let artifactOutput = try artifact.runSync(withArguments: artifactArguments, tee: false).extractOutput()
+        XCTAssertEqual(artifactOutput, "")
         
-        return try JSONDecoder().decode(LiaDescription.self, from: try Data(contentsOf: jsonFile))
+        return try JSONDecoder().decode(LiaDescription.self, from: try Data(contentsOf: manifest))
     }
     
     var fullDescriptionShouldBe: LiaDescription {
@@ -251,6 +249,23 @@ final class LiaDescriptionTests: XCTestCase {
  
     /// Returns path package directory.
     var packageDirectory: Path {
+        Self.packageDirectory
+    }
+    class var packageDirectory: Path {
         Path(#file).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    }
+    
+    /// Returns the path to the libraries built by SwiftPM
+    var libDirectory: Path {
+        packageDirectory.appending(pathComponent: ".build/debug")
+    }
+    
+    override class func setUp() {
+        super.setUp()
+        
+        let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
+        if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
+            try! Path.executable(named: "swift").runSync(inDirectory: packageDirectory, withArguments: "build", tee: true)
+        }
     }
 }
