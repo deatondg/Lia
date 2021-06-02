@@ -83,7 +83,7 @@ final class LiaDescriptionTests: XCTestCase {
     }
     
     func testFullEncodeDecode() throws {
-        let cache = try LiaCache(forNewDirectory: Path.sharedTemporaryDirectory.appending(component: UUID().uuidString),
+        let cache = try LiaCache(forNewDirectory: Path.temporaryDirectory(),
                                  swiftc: Path.executable(named: "swiftc"),
                                  libDirectory: libDirectory
         )
@@ -99,7 +99,7 @@ final class LiaDescriptionTests: XCTestCase {
     }
     
     func testEmptyEncodeDecode() throws {
-        let cache = try LiaCache(forNewDirectory: Path.sharedTemporaryDirectory.appending(component: UUID().uuidString),
+        let cache = try LiaCache(forNewDirectory: Path.temporaryDirectory(),
                                  swiftc: Path.executable(named: "swiftc"),
                                  libDirectory: libDirectory
         )

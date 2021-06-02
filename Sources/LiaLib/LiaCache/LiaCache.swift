@@ -57,6 +57,7 @@ public final class LiaCache: Codable {
         self.usedFiles = []
         
         self.liaDescriptions = [:]
+        self.templateDescriptions = [:]
     }
     public convenience init(forExistingDirectory cacheDirectory: Path) throws {
         let cacheFile = LiaCache.cacheFile(forCacheDirectory: cacheDirectory)
@@ -99,7 +100,12 @@ public final class LiaCache: Codable {
         case descriptionFileMustHaveSwiftExtension
         case noManifestCreated
     }
-    public func renderLiaDescription(descriptionFile: Path, ignoreCache: Bool, saveHash: Bool, tee: Bool = false) throws -> (description: LocatedLiaDescription, fromCache: Bool) {
+    public func renderLiaDescription(
+        descriptionFile: Path,
+        ignoreCache: Bool,
+        saveHash: Bool,
+        tee: Bool = false
+    ) throws -> (description: LocatedLiaDescription, fromCache: Bool) {
         guard descriptionFile.extension == "swift" else {
             throw LiaDescriptionError.descriptionFileMustHaveSwiftExtension
         }
@@ -129,6 +135,58 @@ public final class LiaCache: Codable {
                 }
                 
                 return (description, fromCache: false)
+            } catch {
+                self.deleteFile(manifestName)
+                throw error
+            }
+        }
+    }
+    
+    private struct TemplateDescriptionContext: Hashable, Codable {
+        let fileSize: Int
+        let fileHash: LiaHash
+    }
+    private var templateDescriptions: [TemplateDescriptionContext: String]
+    
+    public enum TemplateDescriptionError: Error {
+        case descriptionFileMsutHaveSwiftExtension
+        case noManifestCreated
+    }
+    public func renderTemplateDescription(
+        descriptionFile: Path,
+        ignoreCache: Bool,
+        saveHash: Bool,
+        tee: Bool = false
+    ) throws -> (template: LocatedTemplateDescription, fromCache: Bool) {
+        guard descriptionFile.extension == "swift" else {
+            throw TemplateDescriptionError.descriptionFileMsutHaveSwiftExtension
+        }
+        
+        let fileSizeAndHash = try descriptionFile.fileSizeAndHash()
+        let context = TemplateDescriptionContext(fileSize: fileSizeAndHash.size, fileHash: fileSizeAndHash.hash)
+        
+        if let cachedDescription = self.templateDescriptions[context], !ignoreCache {
+            return (try JSONDecoder().decode(LocatedTemplateDescription.self, from: Data(contentsOf: cacheDirectory.appending(component: cachedDescription))), fromCache: true)
+        } else {
+            let manifestName = self.newFile(withExtension: "json")
+            do {
+                let artifact = Path.temporaryFile()
+                
+                try LiaBuild.build(swiftc: swiftc, libDirectory: libDirectory, libs: ["LiaSupport", "TemplateDescription"], source: descriptionFile, destination: artifact)
+                
+                let manifest = cacheDirectory.appending(component: manifestName)
+                
+                try artifact.runSync(withArguments: "--liaTemplateOutput", manifest.path).confirmEmpty()
+                
+                let description = try JSONDecoder().decode(LocatedTemplateDescription.self, from: try Data(contentsOf: manifest))
+                
+                if saveHash {
+                    templateDescriptions[context] = manifestName
+                } else {
+                    self.deleteFile(manifestName)
+                }
+                
+                return (description, fromCache: true)
             } catch {
                 self.deleteFile(manifestName)
                 throw error

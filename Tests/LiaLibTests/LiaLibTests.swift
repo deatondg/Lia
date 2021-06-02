@@ -31,6 +31,35 @@ final class LiaLibTests: XCTestCase {
         XCTAssertTrue(description2.fromCache)
     }
     
+    func testTemplateCaching() throws {
+        let cacheDirectory = try Path.temporaryDirectory()
+        let swiftc = try Path.executable(named: "swiftc")
+        
+        var cache = try LiaCache(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
+        let template1 = try cache.renderTemplateDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        )
+        try cache.save()
+        
+        cache = try LiaCache(forExistingDirectory: cacheDirectory)
+        XCTAssertEqual(cache.cacheDirectory, cacheDirectory)
+        XCTAssertEqual(cache.swiftc, swiftc)
+        XCTAssertEqual(cache.libDirectory, libDirectory)
+        
+        let template2 = try cache.renderTemplateDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
+            ignoreCache: false,
+            saveHash: true,
+            tee: true
+        )
+        
+        XCTAssertEqual(template1.template, template2.template)
+        XCTAssertTrue(template2.fromCache)
+    }
+    
     /// Returns path package directory.
     var packageDirectory: Path {
         Self.packageDirectory

@@ -4,10 +4,18 @@ import LiaLib
 
 final class TemplateDescriptionTests: XCTestCase {
     func testFullEncodeDecode() throws {
-        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
-
-        let template = try renderDescription(file: file)
+        let cache = try LiaCache(
+            forNewDirectory: try Path.temporaryDirectory(),
+            swiftc: Path.executable(named: "swiftc"),
+            libDirectory: libDirectory)
         
+        let template = try cache.renderTemplateDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        ).template
+                
         let templateShouldBe = Template(
             parameters: .init("parameters", line: 4, column: 18),
             key: .init("key", line: 5, column: 11),
@@ -23,9 +31,17 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testPartialEncodeDecode() throws {
-        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift")
-
-        let template = try renderDescription(file: file)
+        let cache = try LiaCache(
+            forNewDirectory: try Path.temporaryDirectory(),
+            swiftc: Path.executable(named: "swiftc"),
+            libDirectory: libDirectory)
+        
+        let template = try cache.renderTemplateDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        ).template
         
         let templateShouldBe = Template(
             parameters: .init("parameters", line: 4, column: 18),
@@ -42,9 +58,17 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testEmptyEncodeDecode() throws {
-        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift")
-
-        let template = try renderDescription(file: file)
+        let cache = try LiaCache(
+            forNewDirectory: try Path.temporaryDirectory(),
+            swiftc: Path.executable(named: "swiftc"),
+            libDirectory: libDirectory)
+        
+        let template = try cache.renderTemplateDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        ).template
         
         let templateShouldBe = Template(
             parameters: nil,
@@ -65,9 +89,17 @@ final class TemplateDescriptionTests: XCTestCase {
     
     func testRelativeEncodeDecode() throws {
         try Path.withCurrentWorkingDirectory(.sharedTemporaryDirectory) {
-            let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
-
-            let template = try renderDescription(file: file, artifact: Path("TemplateDescriptionTests.artifact"), manifest: Path("TemplateDescriptionTests.json"))
+            let cache = try LiaCache(
+                forNewDirectory: Path(UUID().uuidString),
+                swiftc: Path.executable(named: "swiftc"),
+                libDirectory: libDirectory)
+            
+            let template = try cache.renderTemplateDescription(
+                descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
+                ignoreCache: true,
+                saveHash: true,
+                tee: true
+            ).template
             
             let templateShouldBe = Template(
                 parameters: .init("parameters", line: 4, column: 18),
@@ -84,48 +116,18 @@ final class TemplateDescriptionTests: XCTestCase {
         }
     }
  
-    func testRenderNoargs() {
-        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
+    func testRenderNoargs() throws {
+        let artifact = Path.temporaryFile()
         
-        do {
-            let _ = try renderDescription(file: file, noargs: true)
-            XCTFail()
-        } catch let error as NSError {
-            XCTAssertEqual(error.code, 260)
-            XCTAssertEqual((error.userInfo["NSUnderlyingError"] as? NSError)?.code, 2)
-        }
-    }
-    
-    func renderDescription(file input: Path, noargs: Bool = false, artifact: Path? = nil, manifest: Path? = nil) throws -> Template {
-        let artifact: Path = artifact ?? Path.sharedTemporaryDirectory.appending(component: "\(UUID()).artifact")
-        let manifest: Path = manifest ?? Path.sharedTemporaryDirectory.appending(component: "\(UUID()).json")
+        try LiaBuild.build(
+            swiftc: Path.executable(named: "swiftc"),
+            libDirectory: libDirectory,
+            libs: ["LiaSupport", "TemplateDescription"],
+            source: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
+            destination: artifact
+        )
         
-        if artifact.exists() {
-            try! artifact.deleteFromFilesystem()
-        }
-        if manifest.exists() {
-            try! manifest.deleteFromFilesystem()
-        }
-        
-        let swiftcArguments: [String] = [
-            "-Xlinker", "-rpath",
-            "-Xlinker", libDirectory.path,
-            "-L", libDirectory.path,
-            "-I", libDirectory.path,
-            "-lTemplateDescription", "-lLiaSupport",
-            input.path,
-            "-o", artifact.path
-        ]
-        
-        let swiftcOutput = try Path.executable(named: "swiftc").runSync(withArguments: swiftcArguments, tee: true).extractOutput()
-        XCTAssertEqual(swiftcOutput, "")
-        
-        let artifactArguments = noargs ? [] : ["--liaTemplateOutput", manifest.path]
-        
-        let artifactOutput = try artifact.runSync(withArguments: artifactArguments, tee: false).extractOutput()
-        XCTAssertEqual(artifactOutput, "")
-        
-        return try JSONDecoder().decode(Template.self, from: try Data(contentsOf: manifest))
+        try artifact.runSync().confirmEmpty()
     }
     
     /// Returns path package directory.
