@@ -85,3 +85,6 @@ extension LiaOptional: ExpressibleByStringLiteral where T: ExpressibleByStringLi
     }
 }
 */
+
+// TEMP
+extension LiaOptional: Hashable where T: Hashable {}

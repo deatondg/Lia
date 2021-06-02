@@ -40,6 +40,7 @@ let package = Package(
     dependencies: [
         .package(name: "tee", url: "https://github.com/deatondg/tee.swift", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-algorithms", from: "0.2.0"),
+        .package(url: "https://github.com/apple/swift-crypto", from: "1.1.6")
         //.package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
@@ -50,7 +51,11 @@ let package = Package(
             name: "LiaLib",
             dependencies: ["LiaShims", "LiaDescription", "TemplateDescription", "LiaSupport",
                            "tee",
+                           .product(name: "Crypto", package: "swift-crypto"),
                            .product(name: "Algorithms", package: "swift-algorithms")
+            ],
+            resources: [
+                .copy("Resources")
             ]),
         .target(
             name: "LiaShims",

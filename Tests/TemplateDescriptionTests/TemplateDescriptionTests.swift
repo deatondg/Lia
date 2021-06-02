@@ -4,7 +4,7 @@ import LiaLib
 
 final class TemplateDescriptionTests: XCTestCase {
     func testFullEncodeDecode() throws {
-        let file = packageDirectory + "Fixtures/TemplateDescriptions/FullTemplate.swift"
+        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
 
         let template = try renderDescription(file: file)
         
@@ -23,7 +23,7 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testPartialEncodeDecode() throws {
-        let file = packageDirectory + "Fixtures/TemplateDescriptions/PartialTemplate.swift"
+        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift")
 
         let template = try renderDescription(file: file)
         
@@ -42,7 +42,7 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testEmptyEncodeDecode() throws {
-        let file = packageDirectory + "Fixtures/TemplateDescriptions/EmptyTemplate.swift"
+        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift")
 
         let template = try renderDescription(file: file)
         
@@ -64,8 +64,8 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testRelativeEncodeDecode() throws {
-        try Path.withCurrentWorkingDirectory(.temporaryDirectory) {
-            let file = packageDirectory + "Fixtures/TemplateDescriptions/FullTemplate.swift"
+        try Path.withCurrentWorkingDirectory(.sharedTemporaryDirectory) {
+            let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
 
             let template = try renderDescription(file: file, artifact: Path("TemplateDescriptionTests.artifact"), manifest: Path("TemplateDescriptionTests.json"))
             
@@ -85,7 +85,7 @@ final class TemplateDescriptionTests: XCTestCase {
     }
  
     func testRenderNoargs() {
-        let file = packageDirectory + "Fixtures/TemplateDescriptions/FullTemplate.swift"
+        let file = packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift")
         
         do {
             let _ = try renderDescription(file: file, noargs: true)
@@ -97,8 +97,8 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func renderDescription(file input: Path, noargs: Bool = false, artifact: Path? = nil, manifest: Path? = nil) throws -> Template {
-        let artifact: Path = artifact ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).artifact")
-        let manifest: Path = manifest ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).json")
+        let artifact: Path = artifact ?? Path.sharedTemporaryDirectory.appending(component: "\(UUID()).artifact")
+        let manifest: Path = manifest ?? Path.sharedTemporaryDirectory.appending(component: "\(UUID()).json")
         
         if artifact.exists() {
             try! artifact.deleteFromFilesystem()
@@ -133,12 +133,12 @@ final class TemplateDescriptionTests: XCTestCase {
         Self.packageDirectory
     }
     class var packageDirectory: Path {
-        Path(#file).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        Path(#file).deletingLastComponent().deletingLastComponent().deletingLastComponent()
     }
     
     /// Returns the path to the libraries built by SwiftPM
     var libDirectory: Path {
-        packageDirectory.appending(pathComponent: ".build/debug")
+        packageDirectory.appending(components: ".build", "debug")
     }
     
     override class func setUp() {

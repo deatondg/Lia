@@ -69,4 +69,8 @@ public struct ProcessResults: Error {
         }
         return output
     }
+    
+    public func confirmEmpty() throws {
+        guard try self.extractOutput() == "" else { throw self }
+    }
 }

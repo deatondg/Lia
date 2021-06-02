@@ -83,17 +83,33 @@ final class LiaDescriptionTests: XCTestCase {
     }
     
     func testFullEncodeDecode() throws {
-        let descriptionFile = packageDirectory + "Fixtures/LiaDescriptions/FullDescription.swift"
-
-        let description = try renderDescription(file: descriptionFile)
-
+        let cache = try LiaCache(forNewDirectory: Path.sharedTemporaryDirectory.appending(component: UUID().uuidString),
+                                 swiftc: Path.executable(named: "swiftc"),
+                                 libDirectory: libDirectory
+        )
+        
+        let description = try cache.renderLiaDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        ).description
+        
         XCTAssertEqual(description, fullDescriptionShouldBe)
     }
     
     func testEmptyEncodeDecode() throws {
-        let descriptionFile = packageDirectory + "Fixtures/LiaDescriptions/EmptyDescription.swift"
-
-        let description = try renderDescription(file: descriptionFile)
+        let cache = try LiaCache(forNewDirectory: Path.sharedTemporaryDirectory.appending(component: UUID().uuidString),
+                                 swiftc: Path.executable(named: "swiftc"),
+                                 libDirectory: libDirectory
+        )
+        
+        let description = try cache.renderLiaDescription(
+            descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "EmptyDescription.swift"),
+            ignoreCache: true,
+            saveHash: true,
+            tee: true
+        ).description
         
         let descriptionShouldBe = LiaDescription(actions: [], bundles: [])
         
@@ -101,57 +117,35 @@ final class LiaDescriptionTests: XCTestCase {
     }
     
     func testRelativeEncodeDecode() throws {
-        try Path.withCurrentWorkingDirectory(.temporaryDirectory) {
-            let descriptionFile = packageDirectory + "Fixtures/LiaDescriptions/FullDescription.swift"
-
-            let description = try renderDescription(file: descriptionFile, artifact: Path("LiaDescriptionTests.artifact"), manifest: Path("LiaDescriptionTests.json"))
-
+        try Path.withCurrentWorkingDirectory(.sharedTemporaryDirectory) {
+            let cache = try LiaCache(forNewDirectory: Path(UUID().uuidString),
+                                     swiftc: Path.executable(named: "swiftc"),
+                                     libDirectory: libDirectory
+            )
+            
+            let description = try cache.renderLiaDescription(
+                descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
+                ignoreCache: true,
+                saveHash: true,
+                tee: true
+            ).description
+            
             XCTAssertEqual(description, fullDescriptionShouldBe)
         }
     }
 
     func testRenderNoargs() throws {
-        let descriptionFile = packageDirectory + "Fixtures/LiaDescriptions/FullDescription.swift"
+        let artifact = Path.temporaryFile()
         
-        do {
-            let _ = try renderDescription(file: descriptionFile, noargs: true)
-            XCTFail()
-        } catch let error as NSError {
-            XCTAssertEqual(error.code, 260)
-            XCTAssertEqual((error.userInfo["NSUnderlyingError"] as? NSError)?.code, 2)
-        }
-    }
-    
-    func renderDescription(file input: Path, noargs: Bool = false, artifact: Path? = nil, manifest: Path? = nil) throws -> LiaDescription {
-        let artifact: Path = artifact ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).artifact")
-        let manifest: Path = manifest ?? Path.temporaryDirectory.appending(pathComponent: "\(UUID()).json")
+        try LiaBuild.build(
+            swiftc: Path.executable(named: "swiftc"),
+            libDirectory: libDirectory,
+            libs: ["LiaSupport", "LiaDescription"],
+            source: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
+            destination: artifact
+        )
         
-        if artifact.exists() {
-            try! artifact.deleteFromFilesystem()
-        }
-        if manifest.exists() {
-            try! manifest.deleteFromFilesystem()
-        }
-        
-        let swiftcArguments: [String] = [
-            "-Xlinker", "-rpath",
-            "-Xlinker", libDirectory.path,
-            "-L", libDirectory.path,
-            "-I", libDirectory.path,
-            "-lLiaDescription", "-lLiaSupport",
-            input.path,
-            "-o", artifact.path
-        ]
-        
-        let swiftcOutput = try Path.executable(named: "swiftc").runSync(withArguments: swiftcArguments, tee: true).extractOutput()
-        XCTAssertEqual(swiftcOutput, "")
-        
-        let artifactArguments = noargs ? [] : ["--liaDescriptionOutput", manifest.path]
-        
-        let artifactOutput = try artifact.runSync(withArguments: artifactArguments, tee: false).extractOutput()
-        XCTAssertEqual(artifactOutput, "")
-        
-        return try JSONDecoder().decode(LiaDescription.self, from: try Data(contentsOf: manifest))
+        try artifact.runSync().confirmEmpty()
     }
     
     var fullDescriptionShouldBe: LiaDescription {
@@ -234,30 +228,18 @@ final class LiaDescriptionTests: XCTestCase {
             ]
         )
     }
-    
-    /// Returns path to the built products directory.
-    var productsDirectory: Path {
-      #if os(macOS)
-        for bundle in Bundle.allBundles where bundle.path.extension == "xctest" {
-            return bundle.path.deletingLastPathComponent()
-        }
-        fatalError("couldn't find the products directory")
-      #else
-        return Bundle.main.path
-      #endif
-    }
  
     /// Returns path package directory.
     var packageDirectory: Path {
         Self.packageDirectory
     }
     class var packageDirectory: Path {
-        Path(#file).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        Path(#file).deletingLastComponent().deletingLastComponent().deletingLastComponent()
     }
     
     /// Returns the path to the libraries built by SwiftPM
     var libDirectory: Path {
-        packageDirectory.appending(pathComponent: ".build/debug")
+        packageDirectory.appending(components: ".build", "debug")
     }
     
     override class func setUp() {

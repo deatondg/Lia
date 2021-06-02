@@ -72,7 +72,7 @@ struct TemplateBundle {
             guard !name.contains("/"), !["", ".", "..", "~"].contains(name) else {
                 throw TemplateBundleError.pathMustBeSpecifiedWhenNameIsInvalidPathComponent(description)
             }
-            self.path = Path("Templates").appending(pathComponent: name)
+            self.path = Path("Templates").appending(component: name)
         }
         
         self.allowInlineHeaders = description.allowInlineHeaders?.value ?? true

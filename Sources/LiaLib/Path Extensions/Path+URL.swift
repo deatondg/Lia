@@ -1,21 +1,16 @@
 import Foundation
 
-extension Path {
-    public func relative(to other: Path) -> Path {
-        Path(unchecked: URL(fileURLWithPath: self.path, relativeTo: other.url))
+extension Path {    
+    public func appending(component: String) -> Path {
+        // TODO: Maybe make a path component type? Is this even the correct condition?
+        assert(!component.contains("/"))
+        return Path(unchecked: self.url.appendingPathComponent(component))
+    }
+    public func appending(components: String...) -> Path {
+        Path(unchecked: components.reduce(into: self.url, { $0.appendPathComponent($1) }))
     }
     
-    public static func + (lhs: Path, rhs: Path) -> Path {
-        rhs.relative(to: lhs)
-    }
-    public static func + (lhs: Path, rhs: String) -> Path {
-        Path(unchecked: URL(fileURLWithPath: rhs, relativeTo: lhs.url))
-    }
-    
-    public func appending(pathComponent: String) -> Path {
-        Path(unchecked: self.url.appendingPathComponent(pathComponent))
-    }
-    public func deletingLastPathComponent() -> Path {
+    public func deletingLastComponent() -> Path {
         Path(unchecked: self.url.deletingLastPathComponent())
     }
     
@@ -31,5 +26,11 @@ extension Path {
     
     public var `extension`: String {
         self.url.pathExtension
+    }
+    public func deletingExtension() -> Path {
+        Path(unchecked: self.url.deletingPathExtension())
+    }
+    public func appending(extension: String) -> Path {
+        Path(unchecked: self.url.appendingPathExtension(`extension`))
     }
 }

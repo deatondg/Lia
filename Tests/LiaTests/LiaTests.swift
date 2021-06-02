@@ -5,7 +5,7 @@ import LiaLib
 
 final class LiaTests: XCTestCase {
     func testExample() throws {
-        let lia = productsDirectory.appending(pathComponent: "lia")
+        let lia = productsDirectory.appending(component: "lia")
         
         let output = try lia.runSync().extractOutput()
 
@@ -15,8 +15,8 @@ final class LiaTests: XCTestCase {
     /// Returns path to the built products directory.
     var productsDirectory: Path {
       #if os(macOS)
-        for bundle in Bundle.allBundles where bundle.path.extension == "xctest" {
-            return bundle.path.deletingLastPathComponent()
+        for bundle in Bundle.allBundles where bundle.bundlePath.extension == "xctest" {
+            return bundle.bundlePath.deletingLastComponent()
         }
         fatalError("couldn't find the products directory")
       #else
@@ -26,6 +26,6 @@ final class LiaTests: XCTestCase {
     
     /// Returns path package directory.
     var packageDirectory: Path {
-        Path(#file).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        Path(#file).deletingLastComponent().deletingLastComponent().deletingLastComponent()
     }
 }
