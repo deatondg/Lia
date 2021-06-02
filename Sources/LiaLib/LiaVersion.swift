@@ -15,21 +15,21 @@ extension LiaVersion {
             swiftc: swiftc,
             libDirectory: libDirectory,
             libs: ["LiaSupport"],
-            source: Bundle.module.resourcePath!.appending(components: "Resources", "LiaVersion", "LiaSupportVersion.swift"),
+            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaSupportVersion.swift"),
             destination: liaSupportVersionExec)
         
         try LiaBuild.build(
             swiftc: swiftc,
             libDirectory: libDirectory,
             libs: ["LiaSupport", "LiaDescription"],
-            source: Bundle.module.resourcePath!.appending(components: "Resources", "LiaVersion", "LiaDescriptionVersion.swift"),
+            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaDescriptionVersion.swift"),
             destination: liaDescriptionVersionExec)
         
         try LiaBuild.build(
             swiftc: swiftc,
             libDirectory: libDirectory,
             libs: ["LiaSupport", "TemplateDescription"],
-            source: Bundle.module.resourcePath!.appending(components: "Resources", "LiaVersion", "TemplateDescriptionVersion.swift"),
+            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "TemplateDescriptionVersion.swift"),
             destination: templateDescriptionVersionExec)
         
         let decoder = JSONDecoder()
