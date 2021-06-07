@@ -38,6 +38,7 @@ let package = Package(
             targets: ["LiaSupport"]),
     ],
     dependencies: [
+        .package(name: "Parsers", url: "../Parsers.swift", .branch("main")),
         .package(name: "tee", url: "https://github.com/deatondg/tee.swift", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-algorithms", from: "0.2.0"),
         .package(url: "https://github.com/apple/swift-crypto", from: "1.1.6")
@@ -50,6 +51,7 @@ let package = Package(
         .target(
             name: "LiaLib",
             dependencies: ["LiaShims", "LiaDescription", "TemplateDescription", "LiaSupport",
+                           "Parsers",
                            "tee",
                            .product(name: "Crypto", package: "swift-crypto"),
                            .product(name: "Algorithms", package: "swift-algorithms")

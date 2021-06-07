@@ -33,8 +33,12 @@ extension LiaHash: Codable {
     }
 }
 extension Path {
-    func fileSizeAndHash() throws -> (size: Int, hash: LiaHash) {
+    func stats() throws -> FileStats {
         let data = try Data(contentsOf: self)
-        return (data.count, LiaHash(of: data))
+        return FileStats(size: data.count, hash: LiaHash(of: data))
+    }
+    struct FileStats: Hashable, Codable {
+        let size: Int
+        let hash: LiaHash
     }
 }

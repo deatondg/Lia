@@ -2,12 +2,21 @@
   "object": {
     "pins": [
       {
+        "package": "Parsers",
+        "repositoryURL": "/Users/davisdeaton/Developer/Projects/Parsers.swift",
+        "state": {
+          "branch": "main",
+          "revision": "8aca1d6bebe058d052bc372f1b7036d41e80abe1",
+          "version": null
+        }
+      },
+      {
         "package": "swift-algorithms",
         "repositoryURL": "https://github.com/apple/swift-algorithms",
         "state": {
           "branch": null,
-          "revision": "e25cf27e57fc3eec00ea2fc8ea7f99695c59966f",
-          "version": "0.2.0"
+          "revision": "2327673b0e9c7e90e6b1826376526ec3627210e4",
+          "version": "0.2.1"
         }
       },
       {

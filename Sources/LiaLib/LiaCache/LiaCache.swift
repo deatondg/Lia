@@ -1,6 +1,5 @@
 import LiaSupport
 import Foundation
-import Crypto
 
 public final class LiaCache: Codable {
     let cacheDirectory: Path
@@ -56,8 +55,9 @@ public final class LiaCache: Codable {
         
         self.usedFiles = []
         
-        self.liaDescriptions = [:]
-        self.templateDescriptions = [:]
+        self.liaDescriptionCache = [:]
+        self.templateDescriptionCache = [:]
+        self.templateHeaderAndBodyCache = [:]
     }
     public convenience init(forExistingDirectory cacheDirectory: Path) throws {
         let cacheFile = LiaCache.cacheFile(forCacheDirectory: cacheDirectory)
@@ -90,11 +90,8 @@ public final class LiaCache: Codable {
         }
     }
     
-    private struct LiaDescriptionContext: Hashable, Codable {
-        let fileSize: Int
-        let fileHash: LiaHash
-    }
-    private var liaDescriptions: [LiaDescriptionContext: String]
+    private typealias LiaDescriptionContext = Path.FileStats
+    private var liaDescriptionCache: [LiaDescriptionContext: String]
     
     public enum LiaDescriptionError: Error {
         case descriptionFileMustHaveSwiftExtension
@@ -110,10 +107,9 @@ public final class LiaCache: Codable {
             throw LiaDescriptionError.descriptionFileMustHaveSwiftExtension
         }
         
-        let fileSizeAndHash = try descriptionFile.fileSizeAndHash()
-        let context = LiaDescriptionContext(fileSize: fileSizeAndHash.size, fileHash: fileSizeAndHash.hash)
+        let context = try descriptionFile.stats()
         
-        if let cachedDescription = self.liaDescriptions[context], !ignoreCache {
+        if let cachedDescription = self.liaDescriptionCache[context], !ignoreCache {
             return (try JSONDecoder().decode(LocatedLiaDescription.self, from: Data(contentsOf: cacheDirectory.appending(component: cachedDescription))), fromCache: true)
         } else {
             let manifestName = self.newFile(withExtension: "json")
@@ -129,7 +125,7 @@ public final class LiaCache: Codable {
                 let description = try JSONDecoder().decode(LocatedLiaDescription.self, from: try Data(contentsOf: manifest))
                 
                 if saveHash {
-                    liaDescriptions[context] = manifestName
+                    liaDescriptionCache[context] = manifestName
                 } else {
                     self.deleteFile(manifestName)
                 }
@@ -142,11 +138,8 @@ public final class LiaCache: Codable {
         }
     }
     
-    private struct TemplateDescriptionContext: Hashable, Codable {
-        let fileSize: Int
-        let fileHash: LiaHash
-    }
-    private var templateDescriptions: [TemplateDescriptionContext: String]
+    private typealias TemplateDescriptionContext = Path.FileStats
+    private var templateDescriptionCache: [TemplateDescriptionContext: String]
     
     public enum TemplateDescriptionError: Error {
         case descriptionFileMsutHaveSwiftExtension
@@ -162,10 +155,9 @@ public final class LiaCache: Codable {
             throw TemplateDescriptionError.descriptionFileMsutHaveSwiftExtension
         }
         
-        let fileSizeAndHash = try descriptionFile.fileSizeAndHash()
-        let context = TemplateDescriptionContext(fileSize: fileSizeAndHash.size, fileHash: fileSizeAndHash.hash)
+        let context = try descriptionFile.stats()
         
-        if let cachedDescription = self.templateDescriptions[context], !ignoreCache {
+        if let cachedDescription = self.templateDescriptionCache[context], !ignoreCache {
             return (try JSONDecoder().decode(LocatedTemplateDescription.self, from: Data(contentsOf: cacheDirectory.appending(component: cachedDescription))), fromCache: true)
         } else {
             let manifestName = self.newFile(withExtension: "json")
@@ -181,7 +173,7 @@ public final class LiaCache: Codable {
                 let description = try JSONDecoder().decode(LocatedTemplateDescription.self, from: try Data(contentsOf: manifest))
                 
                 if saveHash {
-                    templateDescriptions[context] = manifestName
+                    templateDescriptionCache[context] = manifestName
                 } else {
                     self.deleteFile(manifestName)
                 }
@@ -191,6 +183,40 @@ public final class LiaCache: Codable {
                 self.deleteFile(manifestName)
                 throw error
             }
+        }
+    }
+    
+    private struct TemplateHeaderAndBodyContext: Hashable, Codable {
+        let header: Path.FileStats?
+        let template: Path.FileStats
+        let allowInlineHeaders: Bool
+    }
+    private struct TemplateHeaderAndBodyLocation: Hashable, Codable {
+        let header: String?
+        let body: String
+    }
+    private var templateHeaderAndBodyCache: [TemplateHeaderAndBodyContext: TemplateHeaderAndBodyLocation]
+    
+    public enum TemplateHeaderAndBodyError: Error {
+        
+    }
+    public func extractTemplateHeaderAndBody(
+        headerFile: Path?,
+        templateFile: Path,
+        allowInlineHeaders: Bool,
+        ignoreCache: Bool,
+        saveHash: Bool
+    ) throws -> (header: Path?, body: Path) {
+        let context = TemplateHeaderAndBodyContext(
+            header: try headerFile?.stats(),
+            template: try templateFile.stats(),
+            allowInlineHeaders: allowInlineHeaders
+        )
+        
+        if let cachedResult = templateHeaderAndBodyCache[context], !ignoreCache {
+            return (header: cachedResult.header.map(cacheDirectory.appending(component:)), body: cacheDirectory.appending(component: cachedResult.body))
+        } else {
+            fatalError()
         }
     }
     
