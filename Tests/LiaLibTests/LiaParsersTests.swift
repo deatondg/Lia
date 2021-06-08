@@ -68,7 +68,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: noNewlineAfterBeginDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .noNewlineAfterBeginDelimeter)
+        guard case let .noNewlineAfterBeginDelimeter(index) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(index, noNewlineAfterBeginDelimeter.firstIndex(of: "h"))
         
         let noNewlineBeforeEndDelimeter =
             """
@@ -81,7 +84,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: noNewlineBeforeEndDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .noNewlineBeforeEndDelimeter)
+        guard case let .noNewlineBeforeEndDelimeter(index) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(index, noNewlineBeforeEndDelimeter.index(after: noNewlineBeforeEndDelimeter.firstIndex(of: "i")!))
         
         let noNewlineAfterEndDelimeter =
             """
@@ -94,7 +100,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: noNewlineAfterEndDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .noNewlineAfterEndDelimeter)
+        guard case let .noNewlineAfterEndDelimeter(index) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(index, noNewlineAfterEndDelimeter.index(after: noNewlineAfterEndDelimeter.firstIndex(of: "}")!))
         
         let unexpectedBeginDelimeter =
             """
@@ -107,7 +116,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: unexpectedBeginDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .unexpectedBeginDelimeter)
+        guard case let .unexpectedBeginDelimeter(range) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(range, unexpectedBeginDelimeter.indices.filter({ unexpectedBeginDelimeter[$0] == "{" }).dropFirst().first!..<unexpectedBeginDelimeter.indices.filter({ unexpectedBeginDelimeter[$0] == "\n" }).dropFirst().first!)
         
         let unexpectedBeginDelimeter2 =
             """
@@ -120,7 +132,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: unexpectedBeginDelimeter2) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .unexpectedBeginDelimeter)
+        guard case let .unexpectedBeginDelimeter(range) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(range, unexpectedBeginDelimeter2.indices.filter({ unexpectedBeginDelimeter2[$0] == "{" }).dropFirst().first!..<unexpectedBeginDelimeter2.index(before: unexpectedBeginDelimeter2.indices.filter({ unexpectedBeginDelimeter2[$0] == "\n" }).dropFirst().first!))
         
         let incorrectEndDelimeter =
             """
@@ -133,7 +148,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: incorrectEndDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .incorrectEndDelimeter)
+        guard case let .incorrectEndDelimeter(range) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(range, incorrectEndDelimeter.index(incorrectEndDelimeter.firstIndex(of: "r")!, offsetBy: 2)..<incorrectEndDelimeter.index(after: incorrectEndDelimeter.firstIndex(of: "}")!))
         
         let incorrectEndDelimeter2 =
             """
@@ -146,7 +164,10 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: incorrectEndDelimeter2) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .incorrectEndDelimeter)
+        guard case let .incorrectEndDelimeter(range) = f else {
+            XCTFail(); return
+        }
+        XCTAssertEqual(range, incorrectEndDelimeter2.index(incorrectEndDelimeter2.firstIndex(of: "r")!, offsetBy: 2)..<incorrectEndDelimeter2.index(after: incorrectEndDelimeter2.firstIndex(of: "}")!))
         
         let noEndDelimeter =
             """
@@ -159,7 +180,9 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: noEndDelimeter) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .noEndDelimeter)
+        guard case .noEndDelimeter = f else {
+            XCTFail(); return
+        }
         
         let noEndDelimeter2 =
             """
@@ -171,7 +194,9 @@ final class LiaParsersTests: XCTestCase {
         guard case let .failure(f) = parser.parse(from: noEndDelimeter2) else {
             XCTFail(); return
         }
-        XCTAssertEqual(f, .noEndDelimeter)
+        guard case .noEndDelimeter = f else {
+            XCTFail(); return
+        }
     }
     
     /// Returns path package directory.
