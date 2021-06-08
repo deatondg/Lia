@@ -4,11 +4,11 @@ import Foundation
 struct TemplateHeaderAndBodyParser: ParserFromBuilder {
     typealias Output = (header: String?, body: String)
     enum Failure: Error {
-        case noNewlineAfterBeginDelimeter
-        case noNewlineBeforeEndDelimeter
-        case noNewlineAfterEndDelimeter
-        case unexpectedBeginDelimeter
-        case incorrectEndDelimeter
+        case noNewlineAfterBeginDelimeter(String.Index)
+        case noNewlineBeforeEndDelimeter(String.Index)
+        case noNewlineAfterEndDelimeter(String.Index)
+        case unexpectedBeginDelimeter(Range<String.Index>)
+        case incorrectEndDelimeter(Range<String.Index>)
         case noEndDelimeter
     }
     
@@ -27,7 +27,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
         typealias Output = Int
         enum Failure: Error {
             case noHeader
-            case noNewlineAfterBeginDelimeter
+            case noNewlineAfterBeginDelimeter(String.Index)
         }
         
         // TODO: Is this safe?
@@ -36,7 +36,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
         var parser: Parser<Int, Failure> {
             AllOf {
                 startExpression.prefixParser()
-                BlankLineParser()
+                BlankLineParser().locatingFailures()
             }
             .map({ (match, _) -> Int in
                 let hashtags = match[1]!.count
@@ -48,8 +48,8 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
                 switch f {
                 case .c0:
                     return .noHeader
-                case .c1:
-                    return .noNewlineAfterBeginDelimeter
+                case .c1(let f):
+                    return .noNewlineAfterBeginDelimeter(f.location)
                 }
             })
         }
@@ -76,17 +76,17 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
                     guard let endRange = match.range(at: 2),
                           let end = match[2]
                     else {
-                        return .failure(.unexpectedBeginDelimeter)
+                        return .failure(.unexpectedBeginDelimeter(match.range))
                     }
                     guard end.count == hashtags + 1 else {
-                        return .failure(.incorrectEndDelimeter)
+                        return .failure(.incorrectEndDelimeter(endRange))
                     }
                     guard match.string[match.string.index(before: endRange.lowerBound)] == "\n" else {
-                        return .failure(.noNewlineBeforeEndDelimeter)
+                        return .failure(.noNewlineBeforeEndDelimeter(endRange.lowerBound))
                     }
                     return .success(content)
                 })
-                BlankLineParser()
+                BlankLineParser().locatingFailures()
             }
             .map(\.0)
             .mapFailures({ f -> Failure in
@@ -98,8 +98,8 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
                     case .mapFailure(let f):
                         return f
                     }
-                case .c1:
-                    return .noNewlineAfterEndDelimeter
+                case .c1(let f):
+                    return .noNewlineAfterEndDelimeter(f.location)
                 }
             })
         }
@@ -119,8 +119,8 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
                 switch f {
                 case .outerFailure(.noHeader):
                     return .success(Parsers.remainder().map({ (header: nil, body: String($0)) }))
-                case .outerFailure(.noNewlineAfterBeginDelimeter):
-                    return .failure(.noNewlineAfterBeginDelimeter)
+                case .outerFailure(.noNewlineAfterBeginDelimeter(let f)):
+                    return .failure(.noNewlineAfterBeginDelimeter(f))
                 case .innerFailure(let f):
                     return .failure(f)
                 }
