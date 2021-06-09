@@ -35,7 +35,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
         
         var parser: Parser<Int, Failure> {
             AllOf {
-                startExpression.prefixParser()
+                startExpression
                 BlankLineParser().locatingFailures()
             }
             .map({ (match, _) -> Int in
@@ -46,10 +46,10 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
             })
             .mapFailures({ f -> Failure in
                 switch f {
-                case .c0:
+                case .f0:
                     return .noHeader
-                case .c1(let f):
-                    return .noNewlineAfterBeginDelimeter(f.location)
+                case .f1(let f, _):
+                    return .noNewlineAfterBeginDelimeter(f.index)
                 }
             })
         }
@@ -91,15 +91,15 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
             .map(\.0)
             .mapFailures({ f -> Failure in
                 switch f {
-                case .c0(let f):
+                case .f0(let f):
                     switch f {
                     case .parseFailure:
                         return .noEndDelimeter
                     case .mapFailure(let f):
                         return f
                     }
-                case .c1(let f):
-                    return .noNewlineAfterEndDelimeter(f.location)
+                case .f1(let f, _):
+                    return .noNewlineAfterEndDelimeter(f.index)
                 }
             })
         }
@@ -115,7 +115,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
         })
         .catch({ f -> Result<Parser<(header: String?, body: String), Never>, Failure> in
             switch f {
-            case .c0(let f):
+            case .f0(let f):
                 switch f {
                 case .outerFailure(.noHeader):
                     return .success(Parsers.remainder().map({ (header: nil, body: String($0)) }))
