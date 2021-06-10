@@ -4,10 +4,10 @@ import LiaSupport
 import LiaLib
 
 final class LiaTests: XCTestCase {
-    func testExample() throws {
+    func testExample() async throws {
         let lia = productsDirectory.appending(component: "lia")
         
-        let output = try lia.runSync().extractOutput()
+        let output = try await lia.run().extractOutput()
 
         XCTAssertEqual(output, "Hello, world!\n")
     }

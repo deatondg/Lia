@@ -2,12 +2,12 @@ import XCTest
 @testable import LiaLib
 
 final class LiaLibTests: XCTestCase {
-    func testDescriptionCaching() throws {
+    func testDescriptionCaching() async throws {
         let cacheDirectory = try Path.temporaryDirectory()
-        let swiftc = try Path.executable(named: "swiftc")
+        let swiftc = try await Path.executable(named: "swiftc")
         
-        var cache = try LiaCache(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
-        let description1 = try cache.renderLiaDescription(
+        var cache = try await LiaCache(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
+        let description1 = try await cache.renderLiaDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
             ignoreCache: true,
             saveHash: true,
@@ -20,7 +20,7 @@ final class LiaLibTests: XCTestCase {
         XCTAssertEqual(cache.swiftc, swiftc)
         XCTAssertEqual(cache.libDirectory, libDirectory)
         
-        let description2 = try cache.renderLiaDescription(
+        let description2 = try await cache.renderLiaDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
             ignoreCache: false,
             saveHash: true,
@@ -31,12 +31,12 @@ final class LiaLibTests: XCTestCase {
         XCTAssertTrue(description2.fromCache)
     }
     
-    func testTemplateCaching() throws {
+    func testTemplateCaching() async throws {
         let cacheDirectory = try Path.temporaryDirectory()
-        let swiftc = try Path.executable(named: "swiftc")
+        let swiftc = try await Path.executable(named: "swiftc")
         
-        var cache = try LiaCache(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
-        let template1 = try cache.renderTemplateDescription(
+        var cache = try await LiaCache(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
+        let template1 = try await cache.renderTemplateDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
             ignoreCache: true,
             saveHash: true,
@@ -49,7 +49,7 @@ final class LiaLibTests: XCTestCase {
         XCTAssertEqual(cache.swiftc, swiftc)
         XCTAssertEqual(cache.libDirectory, libDirectory)
         
-        let template2 = try cache.renderTemplateDescription(
+        let template2 = try await cache.renderTemplateDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
             ignoreCache: false,
             saveHash: true,
@@ -78,7 +78,8 @@ final class LiaLibTests: XCTestCase {
         
         let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
-            try! Path.executable(named: "swift").runSync(inDirectory: packageDirectory, withArguments: "build", tee: true)
+            //try! Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
+            fatalError()
         }
     }
 }

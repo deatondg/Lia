@@ -2,16 +2,16 @@ import Foundation
 import tee
 
 extension Path {
-    public static func executable(named name: String) throws -> Path {
-        Path(try Path("/bin/sh").runSync(withArguments: "-c", "which \(name)").extractOutput().trimmingCharacters(in: .newlines))
+    public static func executable(named name: String) async throws -> Path {
+        Path(try await Path("/bin/sh").run(withArguments: "-c", "which \(name)").extractOutput().trimmingCharacters(in: .newlines))
     }
     
     @discardableResult
-    public func runSync(inDirectory directory: Path? = nil, withArguments arguments: String..., tee shouldTee: Bool = false) throws -> ProcessResults {
-        return try self.runSync(inDirectory: directory, withArguments: arguments, tee: shouldTee)
+    public func run(inDirectory directory: Path? = nil, withArguments arguments: String..., tee shouldTee: Bool = false) async throws -> ProcessResults {
+        return try await self.run(inDirectory: directory, withArguments: arguments, tee: shouldTee)
     }
     @discardableResult
-    public func runSync(inDirectory directory: Path? = nil, withArguments arguments: [String], tee shouldTee: Bool = false) throws -> ProcessResults {
+    public func run(inDirectory directory: Path? = nil, withArguments arguments: [String], tee shouldTee: Bool = false) async throws -> ProcessResults {
         let process = Process()
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -40,11 +40,20 @@ extension Path {
             for key in xcodeTestVars {
                 env[key] = nil
             }
+            //env["TOOLCHAINS"] = "swift"
             process.environment = env
         }
         
-        try process.run()
-        process.waitUntilExit()
+        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+            process.terminationHandler = { _ in
+                continuation.resume()
+            }
+            do {
+                try process.run()
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
         
         let output = String(data: outputPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
         let error = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
@@ -59,6 +68,17 @@ public struct ProcessResults: Error {
     public let terminationStatus: Int32
     public let terminationReason: Process.TerminationReason
     
+    public func extractOutputAndError() throws -> (output: String, error: String) {
+        guard let output = output,
+              let error = error,
+              terminationStatus == 0,
+              terminationReason == .exit
+        else {
+            throw self
+        }
+        return (output, error)
+    }
+        
     public func extractOutput() throws -> String {
         guard let output = output,
               error == "",

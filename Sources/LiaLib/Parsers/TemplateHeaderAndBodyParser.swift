@@ -1,16 +1,19 @@
 import Parsers
 import Foundation
 
+public enum TemplateHeaderAndBodyParserFailure: Error {
+    case noHeader
+    case noNewlineAfterBeginDelimeter(String.Index)
+    case noNewlineBeforeEndDelimeter(String.Index)
+    case noNewlineAfterEndDelimeter(String.Index)
+    case unexpectedBeginDelimeter(Range<String.Index>)
+    case incorrectEndDelimeter(Range<String.Index>)
+    case noEndDelimeter
+}
+
 struct TemplateHeaderAndBodyParser: ParserFromBuilder {
-    typealias Output = (header: String?, body: String)
-    enum Failure: Error {
-        case noNewlineAfterBeginDelimeter(String.Index)
-        case noNewlineBeforeEndDelimeter(String.Index)
-        case noNewlineAfterEndDelimeter(String.Index)
-        case unexpectedBeginDelimeter(Range<String.Index>)
-        case incorrectEndDelimeter(Range<String.Index>)
-        case noEndDelimeter
-    }
+    typealias Output = (header: String, body: String)
+    typealias Failure = TemplateHeaderAndBodyParserFailure
     
     struct BlankLineParser: ParserFromBuilder {
         typealias Output = ()
@@ -25,10 +28,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
     }
     struct HeaderBeginParser: ParserFromBuilder {
         typealias Output = Int
-        enum Failure: Error {
-            case noHeader
-            case noNewlineAfterBeginDelimeter(String.Index)
-        }
+        typealias Failure = TemplateHeaderAndBodyParserFailure
         
         // TODO: Is this safe?
         let startExpression = try! NSRegularExpression(pattern: #"\{(#+)"#, options: [])
@@ -56,7 +56,7 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
     }
     struct NextHeaderEndParser: ParserFromBuilder {
         typealias Output = Substring
-        typealias Failure = TemplateHeaderAndBodyParser.Failure
+        typealias Failure = TemplateHeaderAndBodyParserFailure
         
         let hashtags: Int
         let endExpression: NSRegularExpression
@@ -105,24 +105,22 @@ struct TemplateHeaderAndBodyParser: ParserFromBuilder {
         }
     }
     
-    var parser: Parser<(header: String?, body: String), Failure> {
+    var parser: Parser<(header: String, body: String), Failure> {
         AllOf {
             HeaderBeginParser().flatMap(NextHeaderEndParser.init)
             Parsers.remainder()
         }
-        .map({ (header, body) -> (header: String?, body: String) in
+        .map({ (header, body) -> (header: String, body: String) in
             (String(header), String(body))
         })
-        .catch({ f -> Result<Parser<(header: String?, body: String), Never>, Failure> in
+        .mapFailures({ f -> Failure in
             switch f {
             case .f0(let f):
                 switch f {
-                case .outerFailure(.noHeader):
-                    return .success(Parsers.remainder().map({ (header: nil, body: String($0)) }))
-                case .outerFailure(.noNewlineAfterBeginDelimeter(let f)):
-                    return .failure(.noNewlineAfterBeginDelimeter(f))
+                case .outerFailure(let f):
+                    return f
                 case .innerFailure(let f):
-                    return .failure(f)
+                    return f
                 }
             }
         })

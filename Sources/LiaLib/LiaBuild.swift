@@ -21,13 +21,13 @@ public enum LiaBuild {
         try swiftcArguments(libDirectory: libDirectory, libs: libs, sources: source, destination: destination)
     }
     
-    public static func build(swiftc: Path, libDirectory: Path, libs: [String], sources: [Path], destination: Path) throws {
-        try swiftc.runSync(withArguments: swiftcArguments(libDirectory: libDirectory, libs: libs, sources: sources, destination: destination)).confirmEmpty()
+    public static func build(swiftc: Path, libDirectory: Path, libs: [String], sources: [Path], destination: Path) async throws {
+        try await swiftc.run(withArguments: swiftcArguments(libDirectory: libDirectory, libs: libs, sources: sources, destination: destination)).confirmEmpty()
     }
-    public static func build(swiftc: Path, libDirectory: Path, libs: [String], sources: Path..., destination: Path) throws {
-        try build(swiftc: swiftc, libDirectory: libDirectory, libs: libs, sources: sources, destination: destination)
+    public static func build(swiftc: Path, libDirectory: Path, libs: [String], sources: Path..., destination: Path) async throws {
+        try await build(swiftc: swiftc, libDirectory: libDirectory, libs: libs, sources: sources, destination: destination)
     }
-    public static func build(swiftc: Path, libDirectory: Path, libs: [String], source: Path, destination: Path) throws {
-        try build(swiftc: swiftc, libDirectory: libDirectory, libs: libs, sources: source, destination: destination)
+    public static func build(swiftc: Path, libDirectory: Path, libs: [String], source: Path, destination: Path) async throws {
+        try await build(swiftc: swiftc, libDirectory: libDirectory, libs: libs, sources: source, destination: destination)
     }
 }

@@ -27,10 +27,12 @@ final class LiaParsersTests: XCTestCase {
             body
             """
         
-        result = try parser.parse(from: correctNoHeader)
-        XCTAssertEqual(result.0.0, nil)
-        XCTAssertEqual(result.0.1, correctNoHeader)
-        XCTAssertEqual(result.1, correctNoHeader.endIndex)
+        guard case let .failure(f) = parser.parse(from: correctNoHeader) else {
+            XCTFail(); return
+        }
+        guard case .noHeader = f else {
+            XCTFail(); return
+        }
         
         let correctNoHeader2 =
             """
@@ -40,11 +42,13 @@ final class LiaParsersTests: XCTestCase {
             body
             """
         
-        result = try parser.parse(from: correctNoHeader2)
-        XCTAssertEqual(result.0.0, nil)
-        XCTAssertEqual(result.0.1, correctNoHeader2)
-        XCTAssertEqual(result.1, correctNoHeader2.endIndex)
-        
+        guard case let .failure(f) = parser.parse(from: correctNoHeader2) else {
+            XCTFail(); return
+        }
+        guard case .noHeader = f else {
+            XCTFail(); return
+        }
+    
         let correctEmptyHeader =
             """
             {#######

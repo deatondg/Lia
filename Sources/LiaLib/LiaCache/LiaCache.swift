@@ -39,7 +39,7 @@ public final class LiaCache: Codable {
         case cacheDirectoryNotEmpty
         case outdatedCache
     }
-    public init(forNewDirectory cacheDirectory: Path, swiftc: Path, libDirectory: Path) throws {
+    public init(forNewDirectory cacheDirectory: Path, swiftc: Path, libDirectory: Path) async throws {
         try cacheDirectory.createDirectory(withIntermediateDirectories: true)
         self.cacheDirectory = cacheDirectory
         
@@ -48,10 +48,10 @@ public final class LiaCache: Codable {
         }
         
         self.swiftc = swiftc
-        self.swiftVersion = try SwiftVersion(ofExecutable: swiftc)
+        self.swiftVersion = try await SwiftVersion(ofExecutable: swiftc)
         
         self.libDirectory = libDirectory
-        self.liaVersion = try LiaVersion(ofLibDirectory: libDirectory, swiftc: swiftc)
+        self.liaVersion = try await LiaVersion(ofLibDirectory: libDirectory, swiftc: swiftc)
         
         self.usedFiles = []
         
@@ -73,16 +73,16 @@ public final class LiaCache: Codable {
             throw LiaCacheError.outdatedCache
         }
     }
-    public convenience init(forNewOrExistingDirectory cacheDirectory: Path, swiftc: Path, libDirectory: Path) throws {
+    public convenience init(forNewOrExistingDirectory cacheDirectory: Path, swiftc: Path, libDirectory: Path) async throws {
         do {
-            try self.init(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
+            try await self.init(forNewDirectory: cacheDirectory, swiftc: swiftc, libDirectory: libDirectory)
         } catch {
             try self.init(forExistingDirectory: cacheDirectory)
             guard
                 self.swiftc == swiftc,
-                try self.swiftVersion == SwiftVersion(ofExecutable: swiftc),
+                try await self.swiftVersion == SwiftVersion(ofExecutable: swiftc),
                 self.libDirectory == libDirectory,
-                try self.liaVersion == LiaVersion(ofLibDirectory: libDirectory, swiftc: swiftc)
+                try await self.liaVersion == LiaVersion(ofLibDirectory: libDirectory, swiftc: swiftc)
             else {
                 // TODO: More info in this error, maybe recovery
                 throw LiaCacheError.outdatedCache
@@ -102,7 +102,7 @@ public final class LiaCache: Codable {
         ignoreCache: Bool,
         saveHash: Bool,
         tee: Bool = false
-    ) throws -> (description: LocatedLiaDescription, fromCache: Bool) {
+    ) async throws -> (description: LocatedLiaDescription, fromCache: Bool) {
         guard descriptionFile.extension == "swift" else {
             throw LiaDescriptionError.descriptionFileMustHaveSwiftExtension
         }
@@ -116,11 +116,11 @@ public final class LiaCache: Codable {
             do {
                 let artifact = Path.temporaryFile()
                 
-                try LiaBuild.build(swiftc: swiftc, libDirectory: libDirectory, libs: ["LiaSupport", "LiaDescription"], source: descriptionFile, destination: artifact)
+                try await LiaBuild.build(swiftc: swiftc, libDirectory: libDirectory, libs: ["LiaSupport", "LiaDescription"], source: descriptionFile, destination: artifact)
                 
                 let manifest = cacheDirectory.appending(components: manifestName)
                 
-                try artifact.runSync(withArguments: "--liaDescriptionOutput", manifest.path).confirmEmpty()
+                try await artifact.run(withArguments: "--liaDescriptionOutput", manifest.path).confirmEmpty()
                 
                 let description = try JSONDecoder().decode(LocatedLiaDescription.self, from: try Data(contentsOf: manifest))
                 
@@ -150,7 +150,7 @@ public final class LiaCache: Codable {
         ignoreCache: Bool,
         saveHash: Bool,
         tee: Bool = false
-    ) throws -> (template: LocatedTemplateDescription, fromCache: Bool) {
+    ) async throws -> (template: LocatedTemplateDescription, fromCache: Bool) {
         guard descriptionFile.extension == "swift" else {
             throw TemplateDescriptionError.descriptionFileMsutHaveSwiftExtension
         }
@@ -164,11 +164,11 @@ public final class LiaCache: Codable {
             do {
                 let artifact = Path.temporaryFile()
                 
-                try LiaBuild.build(swiftc: swiftc, libDirectory: libDirectory, libs: ["LiaSupport", "TemplateDescription"], source: descriptionFile, destination: artifact)
+                try await LiaBuild.build(swiftc: swiftc, libDirectory: libDirectory, libs: ["LiaSupport", "TemplateDescription"], source: descriptionFile, destination: artifact)
                 
                 let manifest = cacheDirectory.appending(component: manifestName)
                 
-                try artifact.runSync(withArguments: "--liaTemplateOutput", manifest.path).confirmEmpty()
+                try await artifact.run(withArguments: "--liaTemplateOutput", manifest.path).confirmEmpty()
                 
                 let description = try JSONDecoder().decode(LocatedTemplateDescription.self, from: try Data(contentsOf: manifest))
                 
@@ -192,14 +192,15 @@ public final class LiaCache: Codable {
         let allowInlineHeaders: Bool
     }
     private struct TemplateHeaderAndBodyLocation: Hashable, Codable {
-        let header: String?
-        let body: String
+        enum Location: Hashable, Codable {
+            case cacheFile(String)
+            case inputFile
+        }
+        let header: Location?
+        let body: Location
     }
     private var templateHeaderAndBodyCache: [TemplateHeaderAndBodyContext: TemplateHeaderAndBodyLocation]
     
-    public enum TemplateHeaderAndBodyError: Error {
-        
-    }
     public func extractTemplateHeaderAndBody(
         headerFile: Path?,
         templateFile: Path,
@@ -214,7 +215,27 @@ public final class LiaCache: Codable {
         )
         
         if let cachedResult = templateHeaderAndBodyCache[context], !ignoreCache {
-            return (header: cachedResult.header.map(cacheDirectory.appending(component:)), body: cacheDirectory.appending(component: cachedResult.body))
+            let header: Path?
+            switch cachedResult.header {
+            case nil:
+                header = nil
+            case .cacheFile(let fileName):
+                header = cacheDirectory.appending(component: fileName)
+            case .inputFile:
+                // We should only have cached .inputFile for an actual input file.
+                assert(headerFile != nil)
+                header = headerFile
+            }
+            
+            let body: Path
+            switch cachedResult.body {
+            case .cacheFile(let fileName):
+                body = cacheDirectory.appending(component: fileName)
+            case .inputFile:
+                body = templateFile
+            }
+            
+            return (header, body)
         } else {
             fatalError()
         }
