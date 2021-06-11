@@ -34,9 +34,9 @@ extension LiaVersion {
         
         let decoder = JSONDecoder()
         
-        let liaSupportVersion = try await decoder.decode(LiaVersion.self, from: liaSupportVersionExec.run().extractOutput().data(using: .utf8) ?? Data())
-        let liaDescriptionVersion = try await decoder.decode(LiaVersion.self, from: liaDescriptionVersionExec.run().extractOutput().data(using: .utf8) ?? Data())
-        let templateDescriptionVersion = try await decoder.decode(LiaVersion.self, from: templateDescriptionVersionExec.run().extractOutput().data(using: .utf8) ?? Data())
+        let liaSupportVersion = try await decoder.decode(LiaVersion.self, from: liaSupportVersionExec.run().extractOutput().data())
+        let liaDescriptionVersion = try await decoder.decode(LiaVersion.self, from: liaDescriptionVersionExec.run().extractOutput().data())
+        let templateDescriptionVersion = try await decoder.decode(LiaVersion.self, from: templateDescriptionVersionExec.run().extractOutput().data())
         
         guard liaDescriptionVersion == liaSupportVersion, templateDescriptionVersion == liaSupportVersion else {
             throw LiaVersionError.mismatchedVersions

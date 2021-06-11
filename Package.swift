@@ -1,10 +1,10 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 import PackageDescription
 
 let package = Package(
     name: "Lia",
     platforms: [
-        .macOS(.v11)
+        .macOS("12")
     ],
     products: [
         /// The front-end invoked by `lia`
@@ -45,7 +45,7 @@ let package = Package(
         //.package(name: "SwiftPM", url: "https://github.com/apple/swift-package-manager", .revision("swift-5.4-RELEASE"))
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "Lia",
             dependencies: ["LiaLib"]),
         .target(

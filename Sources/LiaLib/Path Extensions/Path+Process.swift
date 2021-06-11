@@ -40,11 +40,10 @@ extension Path {
             for key in xcodeTestVars {
                 env[key] = nil
             }
-            //env["TOOLCHAINS"] = "swift"
             process.environment = env
         }
         
-        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             process.terminationHandler = { _ in
                 continuation.resume()
             }
@@ -55,23 +54,21 @@ extension Path {
             }
         }
         
-        let output = String(data: outputPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
-        let error = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
+        let output = try String(data: outputPipe.fileHandleForReading.readDataToEndOfFile())
+        let error = try String(data: errorPipe.fileHandleForReading.readDataToEndOfFile())
         
         return ProcessResults(output: output, error: error, terminationStatus: process.terminationStatus, terminationReason: process.terminationReason)
     }
 }
 
 public struct ProcessResults: Error {
-    public let output: String?
-    public let error: String?
+    public let output: String
+    public let error: String
     public let terminationStatus: Int32
     public let terminationReason: Process.TerminationReason
     
     public func extractOutputAndError() throws -> (output: String, error: String) {
-        guard let output = output,
-              let error = error,
-              terminationStatus == 0,
+        guard terminationStatus == 0,
               terminationReason == .exit
         else {
             throw self
@@ -80,8 +77,7 @@ public struct ProcessResults: Error {
     }
         
     public func extractOutput() throws -> String {
-        guard let output = output,
-              error == "",
+        guard error == "",
               terminationStatus == 0,
               terminationReason == .exit
         else {

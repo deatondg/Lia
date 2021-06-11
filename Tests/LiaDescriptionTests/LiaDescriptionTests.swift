@@ -90,9 +90,7 @@ final class LiaDescriptionTests: XCTestCase {
         
         let description = try await cache.renderLiaDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
-            ignoreCache: true,
-            saveHash: true,
-            tee: true
+            ignoreCache: true
         ).description
         
         XCTAssertEqual(description, fullDescriptionShouldBe)
@@ -106,9 +104,7 @@ final class LiaDescriptionTests: XCTestCase {
         
         let description = try await cache.renderLiaDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "EmptyDescription.swift"),
-            ignoreCache: true,
-            saveHash: true,
-            tee: true
+            ignoreCache: true
         ).description
         
         let descriptionShouldBe = LiaDescription(actions: [], bundles: [])
@@ -247,7 +243,7 @@ final class LiaDescriptionTests: XCTestCase {
         
         let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
-            waitFor {
+            unsafeWaitFor {
                try! await Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
             }
         }

@@ -38,7 +38,3 @@ public enum LocatedBuilder {
 extension Located: Equatable where T: Equatable {}
 extension Located: Decodable where T: Decodable {}
 extension Located: Encodable where T: Encodable {}
-
-// TEMP
-extension Location: Hashable {}
-extension Located: Hashable where T: Hashable {}

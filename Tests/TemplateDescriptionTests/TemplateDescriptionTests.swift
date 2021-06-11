@@ -11,9 +11,7 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let template = try await cache.renderTemplateDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
-            ignoreCache: true,
-            saveHash: true,
-            tee: true
+            ignoreCache: true
         ).template
                 
         let templateShouldBe = Template(
@@ -38,9 +36,7 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let template = try await cache.renderTemplateDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift"),
-            ignoreCache: true,
-            saveHash: true,
-            tee: true
+            ignoreCache: true
         ).template
         
         let templateShouldBe = Template(
@@ -65,9 +61,7 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let template = try await cache.renderTemplateDescription(
             descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift"),
-            ignoreCache: true,
-            saveHash: true,
-            tee: true
+            ignoreCache: true
         ).template
         
         let templateShouldBe = Template(
@@ -148,8 +142,9 @@ final class TemplateDescriptionTests: XCTestCase {
         
         let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
-            //try! Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
-            fatalError()
+            unsafeWaitFor {
+                try! await Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 import Foundation
 
-public func waitFor(_ f: @escaping () async -> ()) {
+public func unsafeWaitFor(_ f: @escaping () async -> ()) {
     let sema = DispatchSemaphore(value: 0)
-    Task.runDetached {
+    async {
         await f()
         sema.signal()
     }

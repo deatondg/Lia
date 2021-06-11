@@ -28,48 +28,7 @@ extension LiaAction {
     }
 }
 
-public enum LiaActionType: Equatable {
+public enum LiaActionType: Equatable, Codable {
     case render
     case build(LiaProduct)
-}
-extension LiaActionType: Codable {
-    enum CodingKeys: String, CodingKey {
-        case render
-        case build
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        guard container.allKeys.count == 1 else {
-            if container.allKeys.count > 1 {
-                throw DecodingError.multipleKeys
-            } else {
-                throw DecodingError.noKeys
-            }
-        }
-        if let _ = try container.decodeIfPresent(UnitType.self, forKey: .render) {
-            self = .render
-            return
-        } else if let product = try container.decodeIfPresent(LiaProduct.self, forKey: .build) {
-            self = .build(product)
-            return
-        }
-        fatalError() // Impossible, there is a key.
-    }
-    enum DecodingError: Error {
-        case multipleKeys
-        case noKeys
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        switch self {
-        case .render:
-            try container.encode(UnitType(), forKey: .render)
-            return
-        case .build(let product):
-            try container.encode(product, forKey: .build)
-            return
-        }
-    }
 }

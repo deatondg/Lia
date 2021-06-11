@@ -24,49 +24,8 @@ public enum LiaOptional<T> {
 }
 
 extension LiaOptional: Equatable where T: Equatable {}
-extension LiaOptional {
-    enum CodingKeys: String, CodingKey {
-        case some
-        case none
-    }
-}
-extension LiaOptional: Decodable where T: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        guard container.allKeys.count == 1 else {
-            if container.allKeys.count > 1 {
-                throw DecodingError.multipleKeys
-            } else {
-                throw DecodingError.noKeys
-            }
-        }
-        if let value = try container.decodeIfPresent(Located<T>.self, forKey: .some) {
-            self = .some(value)
-            return
-        } else if let location =  try container.decodeIfPresent(Location.self, forKey: .none) {
-            self = .none(line: location.line, column: location.column)
-            return
-        }
-        fatalError() // Impossible, there is a key.
-    }
-    enum DecodingError: Error {
-        case multipleKeys
-        case noKeys
-    }
-}
-extension LiaOptional: Encodable where T: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        switch self {
-        case .some(let value):
-            try container.encode(value, forKey: .some)
-            return
-        case let .none(line: line, column: column):
-            try container.encode(Location(line: line, column: column), forKey: .none)
-            return
-        }
-    }
-}
+extension LiaOptional: Decodable where T: Decodable {}
+extension LiaOptional: Encodable where T: Encodable {}
 
 /*
 extension LiaOptional: ExpressibleByUnicodeScalarLiteral where T: ExpressibleByUnicodeScalarLiteral {
@@ -85,6 +44,3 @@ extension LiaOptional: ExpressibleByStringLiteral where T: ExpressibleByStringLi
     }
 }
 */
-
-// TEMP
-extension LiaOptional: Hashable where T: Hashable {}
