@@ -1,7 +1,7 @@
 import XCTest
 @testable import LiaDescription
 import LiaSupport
-import LiaLib
+@testable import LiaLib
 
 final class LiaDescriptionTests: XCTestCase {
     func testIsItEvenPossibleToMakeBundles() {
@@ -83,31 +83,15 @@ final class LiaDescriptionTests: XCTestCase {
     }
     
     func testFullEncodeDecode() async throws {
-        let cache = try await LiaCache(forNewDirectory: Path.temporaryDirectory(),
-                                 swiftc: Path.executable(named: "swiftc"),
-                                 libDirectory: libDirectory
-        )
-        
-        let description = try await cache.renderLiaDescription(
-            descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
-            ignoreCache: true
-        ).description
+        let description = try await cache.run(RenderLiaDescription.self, from: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"))
         
         XCTAssertEqual(description, fullDescriptionShouldBe)
     }
     
     func testEmptyEncodeDecode() async throws {
-        let cache = try await LiaCache(forNewDirectory: Path.temporaryDirectory(),
-                                 swiftc: Path.executable(named: "swiftc"),
-                                 libDirectory: libDirectory
-        )
+        let description = try await cache.run(RenderLiaDescription.self, from: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "EmptyDescription.swift"))
         
-        let description = try await cache.renderLiaDescription(
-            descriptionFile: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "EmptyDescription.swift"),
-            ignoreCache: true
-        ).description
-        
-        let descriptionShouldBe = LiaDescription(actions: [], bundles: [])
+        let descriptionShouldBe = LocatedLiaDescription(actions: [], bundles: [])
         
         XCTAssertEqual(description, descriptionShouldBe)
     }
@@ -134,7 +118,7 @@ final class LiaDescriptionTests: XCTestCase {
         let artifact = Path.temporaryFile()
         
         try await LiaBuild.build(
-            swiftc: Path.executable(named: "swiftc"),
+            swiftc: swiftc,
             libDirectory: libDirectory,
             libs: ["LiaSupport", "LiaDescription"],
             source: packageDirectory.appending(components: "Fixtures", "LiaDescriptions", "FullDescription.swift"),
@@ -144,7 +128,7 @@ final class LiaDescriptionTests: XCTestCase {
         try await artifact.run().confirmEmpty()
     }
     
-    var fullDescriptionShouldBe: LiaDescription {
+    var fullDescriptionShouldBe: LocatedLiaDescription {
         LiaDescription(
             actions: [
                 LiaAction(
@@ -225,27 +209,53 @@ final class LiaDescriptionTests: XCTestCase {
         )
     }
  
+    static let cache: LiaCache = timeIt(name: "Create LiaCache") {
+        unsafeWaitFor {
+            try! await LiaCache(
+                forNewDirectory: try Path.temporaryDirectory(),
+                swiftc: swiftc,
+                libDirectory: libDirectory)
+        }
+    }
+    var cache: LiaCache {
+        Self.cache
+    }
+    
+    static let swiftc: Path = unsafeWaitFor {
+        try! await Path.executable(named: "swiftc")
+    }
+    var swiftc: Path {
+        Self.swiftc
+    }
+    
     /// Returns path package directory.
     var packageDirectory: Path {
         Self.packageDirectory
     }
-    class var packageDirectory: Path {
+    static var packageDirectory: Path {
         Path(#file).deletingLastComponent().deletingLastComponent().deletingLastComponent()
     }
     
     /// Returns the path to the libraries built by SwiftPM
     var libDirectory: Path {
+        Self.libDirectory
+    }
+    static var libDirectory: Path {
         packageDirectory.appending(components: ".build", "debug")
     }
     
+    /// If we are running in Xcode, make sure that the SwiftPM package has been built traditionally so that the dylibs are built.
+    /// Prime the static variables
     override class func setUp() {
         super.setUp()
         
-        let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
             unsafeWaitFor {
-               try! await Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
+                try! await Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
             }
         }
+        let _ = swiftc
+        let _ = cache
+//        unsafeWaitFor { try! await Path.executable(named: "sh").run(withArguments: "-c", "env", tee: true) }
     }
 }

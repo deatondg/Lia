@@ -1,8 +1,8 @@
 import Foundation
 import Crypto
 
-typealias LiaHash = SHA256Digest
-extension LiaHash: Codable {
+typealias FileHash = SHA256Digest
+extension FileHash: Codable {
     public init(from decoder: Decoder) throws {
         // TODO: Fix this
         // AFAIK, this is the only way to initialize a digest.
@@ -13,7 +13,7 @@ extension LiaHash: Codable {
         
         try withUnsafeMutableBytes(of: &self) { selfBytes in
             guard data.count == selfBytes.count else {
-                throw DecodingError.typeMismatch(Insecure.SHA1.self, .init(codingPath: decoder.codingPath, debugDescription: "Incorrect byte count; is \(data.count), should be \(selfBytes.count)"))
+                throw DecodingError.typeMismatch(SHA256.self, .init(codingPath: decoder.codingPath, debugDescription: "Incorrect byte count; is \(data.count), should be \(selfBytes.count)"))
             }
             selfBytes.copyBytes(from: data)
         }
@@ -35,10 +35,10 @@ extension LiaHash: Codable {
 extension Path {
     func stats() throws -> FileStats {
         let data = try Data(contentsOf: self)
-        return FileStats(size: data.count, hash: LiaHash(of: data))
+        return FileStats(size: data.count, hash: FileHash(of: data))
     }
     struct FileStats: Hashable, Codable {
         let size: Int
-        let hash: LiaHash
+        let hash: FileHash
     }
 }

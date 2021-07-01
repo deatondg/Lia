@@ -34,12 +34,17 @@ extension Path {
             process.standardError = errorPipe
         }
         
-        let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
+        //let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
             var env = ProcessInfo.processInfo.environment
             for key in xcodeTestVars {
                 env[key] = nil
             }
+            
+            if let path = env["PATH"] {
+                env["PATH"] = path.split(separator: ":").dropFirst().joined(separator: ":")
+            }
+            
             process.environment = env
         }
         

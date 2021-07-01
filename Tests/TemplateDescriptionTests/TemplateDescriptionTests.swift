@@ -1,19 +1,12 @@
 import XCTest
 @testable import TemplateDescription
-import LiaLib
+// TODO: Remove @testable
+@testable import LiaLib
 
 final class TemplateDescriptionTests: XCTestCase {
     func testFullEncodeDecode() async throws {
-        let cache = try await LiaCache(
-            forNewDirectory: try Path.temporaryDirectory(),
-            swiftc: Path.executable(named: "swiftc"),
-            libDirectory: libDirectory)
+        let template = try await cache.run(RenderTemplateDescription.self, from: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"))
         
-        let template = try await cache.renderTemplateDescription(
-            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
-            ignoreCache: true
-        ).template
-                
         let templateShouldBe = Template(
             parameters: .init("parameters", line: 4, column: 18),
             key: .init("key", line: 5, column: 11),
@@ -24,20 +17,11 @@ final class TemplateDescriptionTests: XCTestCase {
                 comment: .init(open: .init("comment.open", line: 10, column: 31), close: .init("comment.close", line: 10, column: 56))
             )
         )
-
         XCTAssertEqual(template, templateShouldBe)
     }
     
     func testPartialEncodeDecode() async throws {
-        let cache = try await LiaCache(
-            forNewDirectory: try Path.temporaryDirectory(),
-            swiftc: Path.executable(named: "swiftc"),
-            libDirectory: libDirectory)
-        
-        let template = try await cache.renderTemplateDescription(
-            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift"),
-            ignoreCache: true
-        ).template
+        let template = try await cache.run(RenderTemplateDescription.self, from: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "PartialTemplate.swift"))
         
         let templateShouldBe = Template(
             parameters: .init("parameters", line: 4, column: 18),
@@ -54,15 +38,7 @@ final class TemplateDescriptionTests: XCTestCase {
     }
     
     func testEmptyEncodeDecode() async throws {
-        let cache = try await LiaCache(
-            forNewDirectory: try Path.temporaryDirectory(),
-            swiftc: Path.executable(named: "swiftc"),
-            libDirectory: libDirectory)
-        
-        let template = try await cache.renderTemplateDescription(
-            descriptionFile: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift"),
-            ignoreCache: true
-        ).template
+        let template = try await cache.run(RenderTemplateDescription.self, from: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "EmptyTemplate.swift"))
         
         let templateShouldBe = Template(
             parameters: nil,
@@ -114,7 +90,7 @@ final class TemplateDescriptionTests: XCTestCase {
         let artifact = Path.temporaryFile()
         
         try await LiaBuild.build(
-            swiftc: Path.executable(named: "swiftc"),
+            swiftc: swiftc,
             libDirectory: libDirectory,
             libs: ["LiaSupport", "TemplateDescription"],
             source: packageDirectory.appending(components: "Fixtures", "TemplateDescriptions", "FullTemplate.swift"),
@@ -124,27 +100,50 @@ final class TemplateDescriptionTests: XCTestCase {
         try await artifact.run().confirmEmpty()
     }
     
+    static let cache: LiaCache = unsafeWaitFor {
+        try! await LiaCache(
+            forNewDirectory: try Path.temporaryDirectory(),
+            swiftc: swiftc,
+            libDirectory: libDirectory)
+    }
+    var cache: LiaCache {
+        Self.cache
+    }
+    
+    static let swiftc: Path = unsafeWaitFor {
+        try! await Path.executable(named: "swiftc")
+    }
+    var swiftc: Path {
+        Self.swiftc
+    }
+    
     /// Returns path package directory.
     var packageDirectory: Path {
         Self.packageDirectory
     }
-    class var packageDirectory: Path {
+    static var packageDirectory: Path {
         Path(#file).deletingLastComponent().deletingLastComponent().deletingLastComponent()
     }
     
     /// Returns the path to the libraries built by SwiftPM
     var libDirectory: Path {
+        Self.libDirectory
+    }
+    static var libDirectory: Path {
         packageDirectory.appending(components: ".build", "debug")
     }
     
+    /// If we are running in Xcode, make sure that the SwiftPM package has been built traditionally so that the dylibs are built.
+    /// Prime the static variables
     override class func setUp() {
         super.setUp()
         
-        let xcodeTestVars = ["OS_ACTIVITY_DT_MODE", "XCTestSessionIdentifier", "XCTestBundlePath", "XCTestConfigurationFilePath"]
         if xcodeTestVars.contains(where: ProcessInfo.processInfo.environment.keys.contains) {
             unsafeWaitFor {
                 try! await Path.executable(named: "swift").run(inDirectory: packageDirectory, withArguments: "build", tee: true)
             }
         }
+        let _ = swiftc
+        let _ = cache
     }
 }

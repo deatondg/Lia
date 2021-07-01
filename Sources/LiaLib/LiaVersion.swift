@@ -7,36 +7,46 @@ extension LiaVersion {
     init(ofLibDirectory libDirectory: Path, swiftc: Path) async throws {
         let temporaryDirectory = try Path.temporaryDirectory()
         
-        let liaSupportVersionExec = temporaryDirectory.appending(component: "LiaSupportVersion")
-        let liaDescriptionVersionExec = temporaryDirectory.appending(component: "LiaDescriptionVersion")
-        let templateDescriptionVersionExec = temporaryDirectory.appending(component: "TemplateDescriptionVersion")
+        async let _liaSupportVersion = { () async throws -> LiaVersion in
+            let exec = temporaryDirectory.appending(component: "LiaSupportVersion")
+            try await timeIt(name: "Compile") {
+            try await LiaBuild.build(
+                swiftc: swiftc,
+                libDirectory: libDirectory,
+                libs: ["LiaSupport"],
+                source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaSupportVersion.swift"),
+                destination: exec)
+            }
+            let data = try await timeIt(name: "Run") { try await exec.run(tee: true).extractOutput().data() }
+            let result = try timeIt(name: "Decode") { try JSONDecoder().decode(LiaVersion.self, from: data) }
+            return result
+        }()
         
-        try await LiaBuild.build(
-            swiftc: swiftc,
-            libDirectory: libDirectory,
-            libs: ["LiaSupport"],
-            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaSupportVersion.swift"),
-            destination: liaSupportVersionExec)
+        async let _liaDescriptionVersion = { () async throws -> LiaVersion in
+            let exec = temporaryDirectory.appending(component: "LiaDescriptionVersion")
+            try await LiaBuild.build(
+                swiftc: swiftc,
+                libDirectory: libDirectory,
+                libs: ["LiaSupport", "LiaDescription"],
+                source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaDescriptionVersion.swift"),
+                destination: exec)
+            return try await JSONDecoder().decode(LiaVersion.self, from: exec.run().extractOutput().data())
+        }()
         
-        try await LiaBuild.build(
-            swiftc: swiftc,
-            libDirectory: libDirectory,
-            libs: ["LiaSupport", "LiaDescription"],
-            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "LiaDescriptionVersion.swift"),
-            destination: liaDescriptionVersionExec)
+        async let _templateDescriptionVersion = { () async throws -> LiaVersion in
+            let exec = temporaryDirectory.appending(component: "TemplateDescriptionVersion")
+            try await LiaBuild.build(
+                swiftc: swiftc,
+                libDirectory: libDirectory,
+                libs: ["LiaSupport", "TemplateDescription"],
+                source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "TemplateDescriptionVersion.swift"),
+                destination: exec)
+            return try await JSONDecoder().decode(LiaVersion.self, from: exec.run().extractOutput().data())
+        }()
         
-        try await LiaBuild.build(
-            swiftc: swiftc,
-            libDirectory: libDirectory,
-            libs: ["LiaSupport", "TemplateDescription"],
-            source: Bundle.module.liaResourcePath!.appending(components: "Resources", "LiaVersion", "TemplateDescriptionVersion.swift"),
-            destination: templateDescriptionVersionExec)
-        
-        let decoder = JSONDecoder()
-        
-        let liaSupportVersion = try await decoder.decode(LiaVersion.self, from: liaSupportVersionExec.run().extractOutput().data())
-        let liaDescriptionVersion = try await decoder.decode(LiaVersion.self, from: liaDescriptionVersionExec.run().extractOutput().data())
-        let templateDescriptionVersion = try await decoder.decode(LiaVersion.self, from: templateDescriptionVersionExec.run().extractOutput().data())
+        let liaSupportVersion = try await _liaSupportVersion
+        let liaDescriptionVersion = try await _liaDescriptionVersion
+        let templateDescriptionVersion = try await _templateDescriptionVersion
         
         guard liaDescriptionVersion == liaSupportVersion, templateDescriptionVersion == liaSupportVersion else {
             throw LiaVersionError.mismatchedVersions
